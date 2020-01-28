@@ -4,16 +4,16 @@ while (!$Site) {
    $Site = Read-Host 'Adicione uma URL!'   
 }
 
-#Connect-PnPOnline -Url 'https://trentim.sharepoint.com';
+Connect-PnPOnline -Url $Site;
 
 $ListDe = Read-Host 'Qual lista deseja copiar?';
-$ListDe = "Lists/" + 'ListaLivroGP';
+$ListDe = "Lists/" + $ListDe;
 $ListPara = Read-Host 'Para qual lista deseja enviar?';
-$ListPara = "Lists/" +'testeDavi';
+$ListPara = "Lists/" + $ListPara;
 
 $sourceList = Get-PnPList -Identity $ListDe;
 $targetList = Get-PnPList -Identity $ListPara;    
- $sourceItems = Get-PnPListItem -List $ListDe;
+$sourceItems = Get-PnPListItem -List $ListDe;
 
 $sourceFields = $sourceList.Fields
 $targetFields = $targetList.Fields
@@ -24,21 +24,6 @@ $targetList.Context.Load($targetFields);
 $targetList.Context.ExecuteQuery();
 
 
-   foreach ($Field in $sourceFields) {
-      foreach ($Field2 in $targetFields) {
-         if ($Field.FromBaseType -eq $false -and $Field2.FromBaseType -eq $false) {
-            if ($Field.InternalName -eq $Field2.InternalName) {
-               if ($Field.ReadOnlyField -eq $False -and $Field.InternalName -ne "Attachments" -and $Field2.ReadOnlyField -eq $False -and $Field2.InternalName -ne "Attachments") {
-                 <#  Copy-PnPFile -SourceUrl $sourceList -TargetUrl $targetList #>
-                   foreach ($item in $sourceItems) 
-                   {
-                     Add-PnPListItem -List $ListPara -Values @{"Title" = $item["Title"]; $Field.InternalName = $item[$Field.InternalName]}
-                   }
-               }
-            }
-         }
-      }
-   }
 
    $listaEncontrados = @()
    $listaNaoEncontrados = @()
@@ -69,10 +54,6 @@ $targetList.Context.ExecuteQuery();
 
         #$jsonBase
     }
-
-
-
-   
  
  # criar lista de campos
  # criar lista de campos não encontrados
