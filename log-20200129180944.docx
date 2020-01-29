@@ -1,0 +1,310 @@
+﻿**********************
+Início da transcrição do Windows PowerShell
+Hora de início: 20200129180959
+Nome de Usuário: DESKTOP-FGH8QRD\bruno
+Executar como Usuário: DESKTOP-FGH8QRD\bruno
+Nome da Configuração: 
+Computador: DESKTOP-FGH8QRD (Microsoft Windows NT 10.0.18362.0)
+Aplicativo Host: C:\WINDOWS\System32\WindowsPowerShell\v1.0\powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command & 'c:\Users\bruno\.vscode\extensions\ms-vscode.powershell-2020.1.0\modules\PowerShellEditorServices\Start-EditorServices.ps1' -HostName 'Visual Studio Code Host' -HostProfileId 'Microsoft.VSCode' -HostVersion '2020.1.0' -AdditionalModules @('PowerShellEditorServices.VSCode') -BundledModulesPath 'c:\Users\bruno\.vscode\extensions\ms-vscode.powershell-2020.1.0\modules' -EnableConsoleRepl -LogLevel 'Normal' -LogPath 'c:\Users\bruno\.vscode\extensions\ms-vscode.powershell-2020.1.0\logs\1580331639-d518d522-c4a9-4cb2-ba86-22dbf782da601580320673245\EditorServices.log' -SessionDetailsPath 'c:\Users\bruno\.vscode\extensions\ms-vscode.powershell-2020.1.0\sessions\PSES-VSCode-9508-539549' -FeatureFlags @()
+ID do Processo: 15936
+PSVersion: 5.1.18362.145
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.18362.145
+BuildVersion: 10.0.18362.145
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> ParameterBinding(Out-String): nome="InputObject"; valor="Transcrição iniciada, o arquivo de saída é .\log-20200129180944.docx"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> @{ 'computerName' = if ([Environment]::MachineName) {[Environment]::MachineName}  else {'localhost'}; 'processId' = $PID; 'instanceId' = $host.InstanceId }
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="Global"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="Script"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> $global:__psEditorServices_CallStack = Get-PSCallStack; $global:__psEditorServices_CallStack
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="0"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="1"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> @{ 'computerName' = if ([Environment]::MachineName) {[Environment]::MachineName}  else {'localhost'}; 'processId' = $PID; 'instanceId' = $host.InstanceId }
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="Global"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="Script"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> $global:__psEditorServices_CallStack = Get-PSCallStack; $global:__psEditorServices_CallStack
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="0"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="1"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> ParameterBinding(Out-String): nome="InputObject"; valor="Todos os items presentes na nova lista:  ContentTypeId"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> ParameterBinding(Out-String): nome="InputObject"; valor="Microsoft.SharePoint.Client.ListItem"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> ParameterBinding(Out-String): nome="InputObject"; valor="Microsoft.SharePoint.Client.ListItem"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> ParameterBinding(Out-String): nome="InputObject"; valor="Microsoft.SharePoint.Client.ListItem"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> @{ 'computerName' = if ([Environment]::MachineName) {[Environment]::MachineName}  else {'localhost'}; 'processId' = $PID; 'instanceId' = $host.InstanceId }
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="Global"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="Script"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> $global:__psEditorServices_CallStack = Get-PSCallStack; $global:__psEditorServices_CallStack
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="0"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Variable): "Get-Variable"
+>> ParameterBinding(Get-Variable): nome="Scope"; valor="1"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Id"; valor="40, 41, 42, 43, 44, 45, 46, 47, 48"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="51"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="73"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="74"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="75"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="76"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="77"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="78"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Id"; valor="51, 52, 53, 54, 55, 56, 57, 58"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="51"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="74"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="75"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="76"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="77"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="78"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Id"; valor="59, 60, 61, 62, 63, 64, 65"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="51"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="74"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="76"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="77"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="78"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Id"; valor="66, 67, 68, 69, 70, 71"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="51"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="74"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="76"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="78"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Id"; valor="72, 73, 74, 75, 76"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="51"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="74"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="76"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Id"; valor="77, 78, 79, 80"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="51"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="74"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Id"; valor="81, 82, 83"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="51"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-PSBreakpoint): "Get-PSBreakpoint"
+>> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Breakpoint"; valor="Ponto de interrupção de linha em 'C:\Users\bruno\Documents\KANTAR\powershell-kantar\teste.ps1:52'"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Breakpoint"; valor="Ponto de interrupção de linha em 'C:\Users\bruno\Documents\KANTAR\powershell-kantar\teste.ps1:60'"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Breakpoint"; valor="Ponto de interrupção de linha em 'C:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1:51'"
+>> ParameterBinding(Remove-PSBreakpoint): nome="Breakpoint"; valor="Ponto de interrupção de linha em 'C:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1:52'"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="51"
+
+  ID Script                                   Line Command                                  Variable                                 Action
+  -- ------                                   ---- -------                                  --------                                 ------
+  86 scriptListas.ps1                           51
+
+
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\scriptListas.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+
+  ID Script                                   Line Command                                  Variable                                 Action
+  -- ------                                   ---- -------                                  --------                                 ------
+  87 scriptListas.ps1                           52
+
+
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\teste.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="52"
+
+  ID Script                                   Line Command                                  Variable                                 Action
+  -- ------                                   ---- -------                                  --------                                 ------
+  88 teste.ps1                                  52
+
+
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Set-PSBreakpoint): "Set-PSBreakpoint"
+>> ParameterBinding(Set-PSBreakpoint): nome="Script"; valor="c:\Users\bruno\Documents\KANTAR\powershell-kantar\teste.ps1"
+>> ParameterBinding(Set-PSBreakpoint): nome="Line"; valor="60"
+
+  ID Script                                   Line Command                                  Variable                                 Action
+  -- ------                                   ---- -------                                  --------                                 ------
+  89 teste.ps1                                  60
+
+
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-PSBreakpoint): "Get-PSBreakpoint"
+>> ParameterBinding(Get-PSBreakpoint): nome="Type"; valor="Command"
+>> CommandInvocation(Remove-PSBreakpoint): "Remove-PSBreakpoint"
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Command): "Get-Command"
+>> ParameterBinding(Get-Command): nome="ErrorAction"; valor="Ignore"
+>> ParameterBinding(Get-Command): nome="Name"; valor="Where-Object"
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Cmdlet          Where-Object                                       3.0.0.0    Microsoft.PowerShell.Core
+
+
+PS C:\Users\bruno\Documents\KANTAR\powershell-kantar> CommandInvocation(Get-Help): "Get-Help"
+>> ParameterBinding(Get-Help): nome="ErrorAction"; valor="Ignore"
+>> ParameterBinding(Get-Help): nome="Name"; valor="Where-Object"
+
+NOME
+    Where-Object
+
+SINTAXE
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-FilterScript] <scriptblock>  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+    Where-Object [-Property] <string> [[-Value] <Object>]  [<CommonParameters>]
+
+
+ALIASES
+    where
+    ?
+
+
+COMENTÁRIOS
+    Get-Help não consegue localizar os arquivos de Ajuda para o cmdlet neste computador. Apenas a ajuda parcial está sendo exibida.
+        -- Para baixar e instalar arquivos de Ajuda para o módulo que inclui esse cmdlet, use Update-Help.
+        -- Para visualizar o tópico de Ajuda desse cmdlet online, digite: "Get-Help Where-Object -Online" ou
+           acesse https://go.microsoft.com/fwlink/?LinkID=113423.
+
+
+

@@ -48,7 +48,8 @@ foreach ($Field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) 
         $listaNaoEncontrados += $Field.InternalName
     }
 }
-
+<# $targetEncontrado = $targetFields | Where-Object { $Field.FromBaseType -eq $false };
+Write-Host "Todos os items presentes na nova lista: " $targetEncontrado[0].InternalName -ForegroundColor Green; #>
 #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
 foreach ($item in $sourceItems) {
     $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
