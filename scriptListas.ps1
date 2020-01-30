@@ -91,7 +91,8 @@ function loadLists {
     }
 }
 function tryToConnect {
-    Param ([string]$siteurl)
+    Param ([string]$siteurl, [bool]$isExternal = $false, [string]$siteurl2 = $null)
+    if($isExternal -eq $false -or !$isExternal){
     try {
         Connect-PnPOnline -Url $siteurl -Credentials (Get-Credential);
         
@@ -129,6 +130,7 @@ function tryToConnect {
         $ErrorMessage = $_.CategoryInfo.Reason; 
         return $ErrorMessage;
     }
+ }
 }
   
 
