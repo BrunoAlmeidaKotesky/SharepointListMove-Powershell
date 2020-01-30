@@ -6,7 +6,7 @@ $Global:selectProperties = @("Old");
 
 #While pra validar se url é vazia
 while (!$Site) {
-    $Site = Read-Host 'Adicione uma URL!'  
+    $Site = Read-Host 'Qual a url quer navegar?';  
 }
 
 function loadLists{
@@ -56,7 +56,7 @@ function loadLists{
                 #Adicione cada item com os valores do json montado
                 Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
             }
-            else {y
+            else {
                 Add-PnPListItem -List $ListPara -Values $jsonBase
             }
         }
@@ -65,8 +65,8 @@ function loadLists{
             $hashTable = @();
             foreach ($campo in $listaNaoEncontrados) {  
                 $obj = New-Object PSObject              
-                $obj | Add-Member -MemberType NoteProperty -name "old" -value $campo;
-                $obj | Add-Member -MemberType NoteProperty -name "New" -value "";
+                $obj | Add-Member -MemberType NoteProperty -name "CamposNaoEncontrados" -value $campo;
+                $obj | Add-Member -MemberType NoteProperty -name "NovosNomes" -value $null;
                 $hashTable += $obj;  
                 $obj = $null;  
             }
@@ -107,7 +107,9 @@ function tryToConnect {
         #Pegando as listas
         $res = loadLists -ListDe $ListDe -ListPara $ListPara;
         if ($res -eq "Valor inválido") {
+            
             do {      
+                Write-Host "Listas não encontradas, insira novamente!" -ForegroundColor Red
                 $ListDe = Read-Host 'Qual lista deseja copiar?';
                 $ListDe = "Lists/" + $ListDe;
                 $ListPara = Read-Host 'Para qual lista deseja enviar?';
@@ -125,8 +127,10 @@ function tryToConnect {
 }
 $result = tryToConnect -siteurl $Site;
 if ($result -eq "UriFormatException") {
-    do {      
-        $retry = Read-Host 'Adicione uma URL válida!'; 
+    
+    do {
+        Write-Host "Url não encontrada!" -ForegroundColor Red      
+        $retry = Read-Host 'Qual a url quer navegar?'; 
         $res = tryToConnect -siteurl $retry
     }
     while ($res -eq "UriFormatException") 
