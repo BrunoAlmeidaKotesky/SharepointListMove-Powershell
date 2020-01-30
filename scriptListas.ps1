@@ -8,21 +8,18 @@ $Global:selectProperties = @("Old");
 while (!$Site) {
     $Site = Read-Host 'Adicione uma URL!'  
 }
-function tryToConnect {
-    Param ([string]$siteurl)
-    try {
-        Connect-PnPOnline -Url $siteurl;
-        
-        Start-Transcript -Path $logFilePath   
 
-        #Definindo inputs
-        $ListDe = Read-Host 'Qual lista deseja copiar?';
-        $ListDe = "Lists/" + $ListDe;
-        $ListPara = Read-Host 'Para qual lista deseja enviar?';
-        $ListPara = "Lists/" + $ListPara;
-        #Pegando as listas
-        $sourceList = Get-PnPList -Identity $ListDe;
-        $targetList = Get-PnPList -Identity $ListPara;    
+function loadLists{
+    param([string]$ListDe, [string]$ListPara)
+    #Pegando as listas
+
+     $sourceList = Get-PnPList -Identity $ListDe;
+     $targetList = Get-PnPList -Identity $ListPara;
+        if($sourceList -eq $null -or $targetList -eq $null){
+            return "Valor inválido";
+        } 
+        else{
+
         [array]$sourceItems = Get-PnPListItem -List $ListDe;
         #Array de colunas source e target
         $sourceFields = $sourceList.Fields
@@ -47,8 +44,6 @@ function tryToConnect {
                 $listaNaoEncontrados += $Field.InternalName
             }
         }
-        <# $targetEncontrado = $targetFields | Where-Object { $Field.FromBaseType -eq $false };
-Write-Host "Todos os items presentes na nova lista: " $targetEncontrado[0].InternalName -ForegroundColor Green; #>
         #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
         foreach ($item in $sourceItems) {
             $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
@@ -61,24 +56,21 @@ Write-Host "Todos os items presentes na nova lista: " $targetEncontrado[0].Inter
                 #Adicione cada item com os valores do json montado
                 Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
             }
-            else {
+            else {y
                 Add-PnPListItem -List $ListPara -Values $jsonBase
             }
         }
-
         try {
             $outputFilePath = ".\results-" + $currentTime + ".csv";
             $hashTable = @();
             foreach ($campo in $listaNaoEncontrados) {  
                 $obj = New-Object PSObject              
-                $campo.GetEnumerator() | Where-Object { $_.Key -in $Global:selectProperties } | ForEach-Object { $obj | Add-Member Noteproperty $_.Key $_.Value }  
                 $obj | Add-Member -MemberType NoteProperty -name "old" -value $campo;
                 $obj | Add-Member -MemberType NoteProperty -name "New" -value "";
                 $hashTable += $obj;  
                 $obj = $null;  
             }
             $hashtable | Export-Csv $outputFilePath -NoTypeInformation  
-
         }
         catch [Exception] {  
             $ErrorMessage = $_.Exception.Message         
@@ -98,6 +90,33 @@ Write-Host "Todos os items presentes na nova lista: " $targetEncontrado[0].Inter
         # iteração para cada campo da lista de campos encontrados
         # crair uma proprierdade no objeto json
         # rodar add-pnplistitem com o valor do json gerado
+        }
+}
+function tryToConnect {
+    Param ([string]$siteurl)
+    try {
+        Connect-PnPOnline -Url $siteurl;
+        
+        Start-Transcript -Path $logFilePath   
+
+        #Definindo inputs
+        $ListDe = Read-Host 'Qual lista deseja copiar?';
+        $ListDe = "Lists/" + $ListDe;
+        $ListPara = Read-Host 'Para qual lista deseja enviar?';
+        $ListPara = "Lists/" + $ListPara;
+        #Pegando as listas
+        $res = loadLists -ListDe $ListDe -ListPara $ListPara;
+        if ($res -eq "Valor inválido") {
+            do {      
+                $ListDe = Read-Host 'Qual lista deseja copiar?';
+                $ListDe = "Lists/" + $ListDe;
+                $ListPara = Read-Host 'Para qual lista deseja enviar?';
+                $ListPara = "Lists/" + $ListPara;
+
+                $res = loadLists -ListDe $ListDe -ListPara $ListPara;
+            }
+            while ($res -eq "Valor inválido") 
+        };
     }
     catch [Exception] {  
         $ErrorMessage = $_.CategoryInfo.Reason; 
