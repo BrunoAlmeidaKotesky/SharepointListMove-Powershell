@@ -1,5 +1,5 @@
 ﻿#Global
-$currentTime = $(get-date).ToString("yyyyMMddHHmmss")  
+$currentTime = $(get-date).ToString("dd-MM-yyyy-HHmmss")  
 $logFilePath = ".\log-" + $currentTime + ".docx"  
 
 function loadLists {
@@ -122,6 +122,9 @@ function loadListsFromMultipleSites {
             }
 
             $targetList = Get-PnPList -Identity $ListPara;
+            if ($targetList -eq $null) {
+                return "Valor inválido";
+            } 
             $targetFields = $targetList.Fields;
             $targetList.Context.Load($targetFields);
             $targetList.Context.ExecuteQuery();
@@ -185,7 +188,7 @@ function loadListsFromMultipleSites {
             } 
             Stop-Transcript
         }
-        catch [Exception]{
+        catch [Exception] {
             $ErrorMessage = $_.CategoryInfo.Reason; 
             return $ErrorMessage;
         }
@@ -251,22 +254,33 @@ function tryToConnect {
             
             #Pegando as listas
             $res = loadListsFromMultipleSites -ListDe $ListDe -ListaPara $ListPara -targetUrl $siteurl2;
-            if ($res -eq "Valor inválido") {
+            if ($res -eq "Valor inválido" -or $res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") {
             
                 do {      
-                    Write-Host "Listas não encontradas, insira novamente!" -ForegroundColor Red
-                    $ListDe = Read-Host 'Qual lista deseja copiar?';
-                    if ($ListDe -ne $null) {
-                        $ListDe = "Lists/" + $ListDe;        
-                    } 
-                    $ListPara = Read-Host 'Qual lista deseja copiar?';
-                    if ($ListPara -ne $null) {
-                        $ListPara = "Lists/" + $ListPara;        
-                    } 
+                    if ($res -eq "Valor inválido") {
+                        Write-Host "Uma das listas não foram encontradas, insira novamente!" -ForegroundColor Red
+                        $ListDe = Read-Host 'Qual lista deseja copiar?';
+                        if ($ListDe -ne $null) {
+                            $ListDe = "Lists/" + $ListDe;        
+                        } 
+                        $ListPara = Read-Host 'Qual lista deseja copiar?';
+                        if ($ListPara -ne $null) {
+                            $ListPara = "Lists/" + $ListPara;        
+                        } 
+                    }
+                    if ($res -eq "UriFormatException") {
+                        Write-Host "Url não válida!" -ForegroundColor Red      
+                    }
+                    if ($res -eq "WebException") {
+                        Write-Host "As credenciais ou URL estão inválidas" -ForegroundColor Red      
+                    }
+                    if ($res -eq "IdcrlException") {
+                        Write-Host "As credenciais estão inválidas" -ForegroundColor Red 
+                    }
 
                     $res = loadListsFromMultipleSites -ListDe $ListDe -ListaPara $ListPara -targetUrl $siteurl2;
                 }
-                while ($res -eq "Valor inválido") 
+                while ($res -eq "Valor inválido" -or $res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") 
             };
         }
         catch [Exception] {  
