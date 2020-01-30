@@ -1,19 +1,33 @@
 ﻿$Site = Read-Host 'Qual a url quer navegar?';
-$currentTime= $(get-date).ToString("yyyyMMddHHmmss")  
-$logFilePath=".\log-"+$currentTime+".docx"  
+$currentTime = $(get-date).ToString("yyyyMMddHHmmss")  
+$logFilePath = ".\log-" + $currentTime + ".docx"  
 # Fields that has to be retrieved  
-$Global:selectProperties=@("Old");  
+$Global:selectProperties = @("Old");
 
+#While pra validar se url é vazia
 while (!$Site) {
     $Site = Read-Host 'Adicione uma URL!'  
 }
-try {
-    Connect-PnPOnline -Url $Site;
+function tryToConnect {
+    Param ([string]$siteurl)
+    try {
+        Connect-PnPOnline -Url $siteurl;
+    }
+    catch [Exception] {  
+        $ErrorMessage = $_.CategoryInfo.Reason; 
+        return $ErrorMessage;
+    }
 }
-catch {
-    $Site = Read-Host 'Url não encontrada, tente novamente!'
-    Connect-PnPOnline -Url "https://"+ $Site;
-}
+$result = tryToConnect -siteurl $Site;
+if ($result -eq "UriFormatException") {
+    do {      
+        $retry = Read-Host 'Adicione uma URL válida!'; 
+        $res = tryToConnect -siteurl $retry
+    }
+    while ($res -eq "UriFormatException") 
+};
+
+
 Start-Transcript -Path $logFilePath   
 
 #Definindo inputs
@@ -73,7 +87,8 @@ try {
     foreach ($campo in $listaNaoEncontrados) {  
         $obj = New-Object PSObject              
         $campo.GetEnumerator() | Where-Object { $_.Key -in $Global:selectProperties } | ForEach-Object { $obj | Add-Member Noteproperty $_.Key $_.Value }  
-        $obj | Add-Member -MemberType NoteProperty -name "old" -value $campo
+        $obj | Add-Member -MemberType NoteProperty -name "old" -value $campo;
+        $obj | Add-Member -MemberType NoteProperty -name "New" -value "";
         $hashTable += $obj;  
         $obj = $null;  
     }
