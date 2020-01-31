@@ -173,22 +173,7 @@ function loadListsFromMultipleSites {
                 $listaNaoEncontrados += $Field.InternalName
             }
         }
-        #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
-        foreach ($item in $sourceItems) {
-            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
-            #Para cada campo na lista de campos encontrados, adicione em um json
-            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
-            foreach ($campo in $listaEncontrados) {
-                $jsonBase.Add($campo, $item[$campo]);
-            }
-            if ($identifyTitle.Length -gt 0) {
-                #Adicione cada item com os valores do json montado
-                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
-            }
-            else {
-                Add-PnPListItem -List $ListPara -Values $jsonBase
-            }
-        }
+        #Escrevendo o csv.
         try {
             $outputFilePath = ".\results-" + $currentTime + ".csv";
             $hashTable = @();
@@ -205,18 +190,57 @@ function loadListsFromMultipleSites {
             foreach ($coluna in $targetFieldsEncontrados) {
                 Write-Host "Coluna presente na lista $($ListPara):", $coluna.InternalName -ForegroundColor Yellow
             }
-            Write-Host "Um arquivo csv contendo as colunas da $($ListDe) não presentes na $($ListPara) foi criado com sucesso!" -ForegroundColor Green
-            Start-Sleep -s 2
-            Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
-            Start-Sleep -s 6
-
+            if ($listaNaoEncontrados.Length -gt 0) {
+                Write-host "Há colunas nas quais não foram encontrados na lista alvo, informe agora no csv para onde eles devem ir antes de continuar." -ForegroundColor Yellow 
+                $lerCsv = Read-Host " ( S / N ) "
+                Switch ($lerCsv) { 
+                    S { 
+                        $newEncontrados = @();
+                        Import-Csv -Path $outputFilePath | ForEach-Object {  
+                            $CamposAlvo = $_.CamposAlvo; 
+                            Write-Host $CamposAlvo
+                            $newEncontrados = $listaEncontrados += $CamposAlvo + ";" + $_.CamposNaoEncontrados;
+                        } 
+                        Stop-Transcript
+                        $newEncontrados;
+                        #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
+                        foreach ($item in $sourceItems) {
+                            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
+                            #Para cada campo na lista de campos encontrados, adicione em um json
+                            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
+                            foreach ($campo in $newEncontrados) {
+                                $valor = $campo.Split(';')[1];
+                                if($valor -ne $null){
+                                    $campoDe = $campo.Split(';')[0];
+                                    $jsonBase.Add($campoDe, $item[$valor]);
+                                }
+                                else{
+                                $jsonBase.Add($campo, $item[$campo]);
+                                }
+                            }
+                            if ($identifyTitle.Length -gt 0) {
+                                #Adicione cada item com os valores do json montado
+                                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                            }
+                            else {
+                                Add-PnPListItem -List $ListPara -Values $jsonBase
+                            }
+                        }
+                
+                        Start-Sleep -s 2
+                        Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
+                        Start-Sleep -s 6
+                    }
+                    N { }
+                    Default { }
+                }
+            }
+         $itemVal;
         }
         catch [Exception] {  
             $ErrorMessage = $_.Exception.Message         
             Write-Host "Error: $ErrorMessage" -ForegroundColor Red          
         } 
-        Stop-Transcript
-        
     }
 }
 
