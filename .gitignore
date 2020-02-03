@@ -1,2 +1,4 @@
 *.docx
 *.csv
+out
+*.psd1
