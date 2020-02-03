@@ -44,55 +44,176 @@ function loadLists {
                 $listaNaoEncontrados += $Field.InternalName
             }
         }
-        #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
-        foreach ($item in $sourceItems) {
-            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
-            #Para cada campo na lista de campos encontrados, adicione em um json
-            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
-            foreach ($campo in $listaEncontrados) {
-                $jsonBase.Add($campo, $item[$campo]);
+        $ehAnterior = $false;
+        $execucaoAnterior = Read-Host "Já existe um arquivo CSV gerado pelo script para estas listas? (Padrão: N) (S / N)";
+        switch ($execucaoAnterior) {
+            S {
+                $ehAnterior = $true
+                $nomeDoArq = Read-Host "Qual o nome do arquivo?";
             }
-            if ($identifyTitle.Length -gt 0) {
-                #Adicione cada item com os valores do json montado
-                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
-            }
-            else {
-                Add-PnPListItem -List $ListPara -Values $jsonBase
-            }
+            N { $ehAnterior = $false }
+            Default { $ehAnterior = $false }
         }
+        #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
         try {
-            $outputFilePath = ".\results-" + $currentTime + ".csv";
+            $outputFilePath = ".\depara-" + $currentTime + ".csv";
             $hashTable = @();
             foreach ($campo in $listaNaoEncontrados) {  
                 $obj = New-Object PSObject              
                 $obj | Add-Member -MemberType NoteProperty -name "CamposNaoEncontrados" -value $campo;
-                $obj | Add-Member -MemberType NoteProperty -name "CamposAlvo" -value " ";
+                $obj | Add-Member -MemberType NoteProperty -name "CamposAlvo" -value $null;
                 $hashTable += $obj;  
                 $obj = $null;  
                 Write-Host "Colunas não preenchidas de $($ListDe) para a $($ListPara):", $campo -ForegroundColor Blue
             }
-            $hashtable | Export-Csv $outputFilePath -NoTypeInformation;
+            $hashtable | Export-Csv $outputFilePath -NoTypeInformation -Delimiter ';';
             $targetFieldsEncontrados = $targetFields | Where-Object { $_.FromBaseType -eq $false };
             foreach ($coluna in $targetFieldsEncontrados) {
                 Write-Host "Coluna presente na lista $($ListPara):", $coluna.InternalName -ForegroundColor Yellow
             }
-            Write-Host "Um arquivo csv contendo as colunas da $($ListDe) não presentes na $($ListPara) foi criado com sucesso!" -ForegroundColor Green
-            Start-Sleep -s 2
-            Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
-            Start-Sleep -s 6
+            if ($listaNaoEncontrados.Length -gt 0) {
+                Write-host "Há colunas nas quais não foram encontrados na lista alvo, informe agora no csv para onde eles devem ir antes de continuar." -ForegroundColor Yellow 
+                $lerCsv = Read-Host " ( OK ) "
+                Switch ($lerCsv) { 
+                    OK { 
+                        $newEncontrados = @();
+                        if ($ehAnterior -eq $false) {
+                            Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
+                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
+                                    $CamposAlvo = $_.CamposAlvo;
+                                }   
+                                Write-Host $CamposAlvo
+                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+                            } 
+                        }
+                        else {
+                            if ($nomeDoArq.endswith('.csv')) {
+                                $nomeDoArq = ".\" + $nomeDoArq;
+                            }
+                            else {
+                                $nomeDoArq = ".\" + $nomeDoArq + ".csv";
+                            }
+                        
+                            Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
+                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
+                                    $CamposAlvo = $_.CamposAlvo;
+                                }    
+                                Write-Host $CamposAlvo
+                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+                            } 
+                        }
 
+                        Stop-Transcript
+                        $newEncontrados;
+                        #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
+                        foreach ($item in $sourceItems) {
+                            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
+                            #Para cada campo na lista de campos encontrados, adicione em um json
+                            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
+                            $novosEncontrados = $newEncontrados | ? {$_ -ne "|"};
+                            foreach ($campo in $novosEncontrados) {
+                                if ($campo -eq "|") {
+                                    $newEncontrados.Remove($campo);
+                                }
+                                $valor = $campo.Split('|')[1];
+                                if ($valor -ne $null) {
+                                    $campoDe = $campo.Split('|')[0];
+                                    $jsonBase.Add($campoDe, $item[$valor]);
+                                }
+                                else {
+                                    $jsonBase.Add($campo, $item[$campo]);
+                                }
+                            }
+                            if ($identifyTitle.Length -gt 0) {
+                                #Adicione cada item com os valores do json montado
+                                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                            }
+                            else {
+                                Add-PnPListItem -List $ListPara -Values $jsonBase
+                            }
+                        }
+                
+                        Start-Sleep -s 2
+                        Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
+                        Start-Sleep -s 6
+                    }
+                    Default { 
+                        $newEncontrados = @();
+                        if ($ehAnterior -eq $false) {
+                            Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
+                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
+                                    $CamposAlvo = $_.CamposAlvo;
+                                }    
+                                Write-Host $CamposAlvo
+                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+                            } 
+                        }
+                        else {
+                            if ($nomeDoArq.endswith('.csv')) {
+                                $nomeDoArq = ".\" + $nomeDoArq;
+                            }
+                            else {
+                                $nomeDoArq = ".\" + $nomeDoArq + ".csv";
+                            }
+                        
+                            Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
+                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
+                                    $CamposAlvo = $_.CamposAlvo;
+                                }    
+                                Write-Host $CamposAlvo
+                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+                            } 
+                        }
+
+                        Stop-Transcript
+                        $newEncontrados;
+                        #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
+                        foreach ($item in $sourceItems) {
+                            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
+                            #Para cada campo na lista de campos encontrados, adicione em um json
+                            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
+                            $novosEncontrados = $newEncontrados | ? {$_ -ne "|"};
+                            foreach ($campo in $novosEncontrados) {
+                                if ($campo -eq "|") {
+                                    $newEncontrados.Remove($campo);
+                                }
+                                $valor = $campo.Split('|')[1];
+                                if ($valor -ne $null) {
+                                    $campoDe = $campo.Split('|')[0];
+                                    $jsonBase.Add($campoDe, $item[$valor]);
+                                }
+                                else {
+                                    $jsonBase.Add($campo, $item[$campo]);
+                                }
+                            }
+                            if ($identifyTitle.Length -gt 0) {
+                                #Adicione cada item com os valores do json montado
+                                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                            }
+                            else {
+                                Add-PnPListItem -List $ListPara -Values $jsonBase
+                            }
+                        }
+                
+                        Start-Sleep -s 2
+                        Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
+                        Start-Sleep -s 6
+                    }
+                }
+            }
+            $itemVal;
         }
         catch [Exception] {  
             $ErrorMessage = $_.Exception.Message         
             Write-Host "Error: $ErrorMessage" -ForegroundColor Red          
         } 
-        Stop-Transcript
     }
 }
 
 function retryConnection {
     Param ([string]$siteurl)
     try {
+        Write-Host "Insira as credenciais da segunda URL!" -ForegroundColor Yellow
         Connect-PnPOnline -Url $siteurl -Credentials(Get-Credential);
     }
     catch [Exception] {
@@ -124,7 +245,6 @@ function loadListsFromMultipleSites {
         $sourceList.Context.Load($sourceFields);
         $sourceList.Context.ExecuteQuery();
         Disconnect-PnPOnline;
-
         $connectionRes = retryConnection -siteurl $targetUrl;
         if ($connectionRes -eq "UriFormatException" -or $connectionRes -eq "WebException" -or $connectionRes -eq "IdcrlException") {
             Write-Host "A url ou credenciais informadas para o site alvo estão inválidas, tente novamente!" -ForegroundColor Red;
@@ -174,8 +294,19 @@ function loadListsFromMultipleSites {
             }
         }
         #Escrevendo o csv.
+        $ehAnterior = $false;
+        $execucaoAnterior = Read-Host "Já existe um arquivo CSV gerado pelo script para estas listas? (Padrão: N) (S / N)";
+        switch ($execucaoAnterior) {
+            S {
+                $ehAnterior = $true
+                $nomeDoArq = Read-Host "Qual o nome do arquivo?";
+            }
+            N { $ehAnterior = $false }
+            Default { $ehAnterior = $false }
+        }
+        #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
         try {
-            $outputFilePath = ".\results-" + $currentTime + ".csv";
+            $outputFilePath = ".\depara-" + $currentTime + ".csv";
             $hashTable = @();
             foreach ($campo in $listaNaoEncontrados) {  
                 $obj = New-Object PSObject              
@@ -185,22 +316,43 @@ function loadListsFromMultipleSites {
                 $obj = $null;  
                 Write-Host "Colunas não preenchidas de $($ListDe) para a $($ListPara):", $campo -ForegroundColor Blue
             }
-            $hashtable | Export-Csv $outputFilePath -NoTypeInformation;
+            $hashtable | Export-Csv $outputFilePath -NoTypeInformation -Delimiter ';';
             $targetFieldsEncontrados = $targetFields | Where-Object { $_.FromBaseType -eq $false };
             foreach ($coluna in $targetFieldsEncontrados) {
                 Write-Host "Coluna presente na lista $($ListPara):", $coluna.InternalName -ForegroundColor Yellow
             }
             if ($listaNaoEncontrados.Length -gt 0) {
                 Write-host "Há colunas nas quais não foram encontrados na lista alvo, informe agora no csv para onde eles devem ir antes de continuar." -ForegroundColor Yellow 
-                $lerCsv = Read-Host " ( S / N ) "
+                $lerCsv = Read-Host " ( OK ) "
                 Switch ($lerCsv) { 
-                    S { 
+                    OK { 
                         $newEncontrados = @();
-                        Import-Csv -Path $outputFilePath | ForEach-Object {  
-                            $CamposAlvo = $_.CamposAlvo; 
-                            Write-Host $CamposAlvo
-                            $newEncontrados = $listaEncontrados += $CamposAlvo + ";" + $_.CamposNaoEncontrados;
-                        } 
+                        if ($ehAnterior -eq $false) {
+                            Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
+                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
+                                    $CamposAlvo = $_.CamposAlvo;
+                                }    
+                                Write-Host $CamposAlvo
+                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+                            } 
+                        }
+                        else {
+                            if ($nomeDoArq.endswith('.csv')) {
+                                $nomeDoArq = ".\" + $nomeDoArq;
+                            }
+                            else {
+                                $nomeDoArq = ".\" + $nomeDoArq + ".csv";
+                            }
+                        
+                            Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
+                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
+                                    $CamposAlvo = $_.CamposAlvo;
+                                }    
+                                Write-Host $CamposAlvo
+                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+                            } 
+                        }
+
                         Stop-Transcript
                         $newEncontrados;
                         #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
@@ -208,14 +360,18 @@ function loadListsFromMultipleSites {
                             $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
                             #Para cada campo na lista de campos encontrados, adicione em um json
                             $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
-                            foreach ($campo in $newEncontrados) {
-                                $valor = $campo.Split(';')[1];
-                                if($valor -ne $null){
-                                    $campoDe = $campo.Split(';')[0];
+                            $novosEncontrados = $newEncontrados | ? {$_ -ne "|"};
+                            foreach ($campo in $novosEncontrados) {
+                                if ($campo -eq "|") {
+                                    $newEncontrados.Remove($campo);
+                                }
+                                $valor = $campo.Split('|')[1];
+                                if ($valor -ne $null) {
+                                    $campoDe = $campo.Split('|')[0];
                                     $jsonBase.Add($campoDe, $item[$valor]);
                                 }
-                                else{
-                                $jsonBase.Add($campo, $item[$campo]);
+                                else {
+                                    $jsonBase.Add($campo, $item[$campo]);
                                 }
                             }
                             if ($identifyTitle.Length -gt 0) {
@@ -231,11 +387,71 @@ function loadListsFromMultipleSites {
                         Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
                         Start-Sleep -s 6
                     }
-                    N { }
-                    Default { }
+                    Default { 
+                        $newEncontrados = @();
+                        if ($ehAnterior -eq $false) {
+                            Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
+                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
+                                    $CamposAlvo = $_.CamposAlvo;
+                                }   
+                                Write-Host $CamposAlvo
+                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+                            } 
+                        }
+                        else {
+                            if ($nomeDoArq.endswith('.csv')) {
+                                $nomeDoArq = ".\" + $nomeDoArq;
+                            }
+                            else {
+                                $nomeDoArq = ".\" + $nomeDoArq + ".csv";
+                            }
+                        
+                            Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
+                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne ";") {
+                                    $CamposAlvo = $_.CamposAlvo;
+                                }     
+                                Write-Host $CamposAlvos
+                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+                            } 
+                        }
+
+                        Stop-Transcript
+                        $newEncontrados;
+                        #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
+                        foreach ($item in $sourceItems) {
+                            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
+                            #Para cada campo na lista de campos encontrados, adicione em um json
+                            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
+                            $novosEncontrados = $newEncontrados | ? { $_ -ne "|"};
+                            foreach ($campo in $novosEncontrados) {
+                                if ($campo -eq "|") {
+                                    $newEncontrados.Remove($campo);
+                                }
+                                $valor = $campo.Split('|')[1];
+                                if ($valor -ne $null) {
+                                    $campoDe = $campo.Split('|')[0];
+                                    $jsonBase.Add($campoDe, $item[$valor]);
+                                }
+                                else {
+                                    $jsonBase.Add($campo, $item[$campo]);
+                                }
+                            }
+                            if ($identifyTitle.Length -gt 0) {
+                                #Adicione cada item com os valores do json montado
+                                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                            }
+                            else {
+                                Add-PnPListItem -List $ListPara -Values $jsonBase
+                            }
+                        }
+                
+                        Start-Sleep -s 2
+                        Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
+                        Start-Sleep -s 6
+                    }
                 }
             }
-         $itemVal;
+            $itemVal;
         }
         catch [Exception] {  
             $ErrorMessage = $_.Exception.Message         
@@ -249,8 +465,9 @@ function tryToConnect {
     #Se for apenas um site
     if ($isExternal -eq $false -or !$isExternal) {
         try {
+            Write-Host "Insira as credenciais da primeira URL!" -ForegroundColor Yellow
             Connect-PnPOnline -Url $siteurl -Credentials (Get-Credential);
-        
+    
             Start-Transcript -Path $logFilePath   
             #Definindo inputs
             $ListDe = Read-Host 'Qual lista deseja copiar?';
@@ -289,6 +506,7 @@ function tryToConnect {
     #Se for mais de um site
     elseif ($isExternal -eq $true -and $isExternal -ne $null) {
         try {
+            Write-Host "Insira as credenciais da primeira URL!" -ForegroundColor Yellow
             Connect-PnPOnline -Url $siteurl -Credentials (Get-Credential);
         
             Start-Transcript -Path $logFilePath   
@@ -339,14 +557,14 @@ function tryToConnect {
     }
 }
 
-Write-host "A segunda lista está em outro ambiente do sharepoint? (Padrão: Não)" -ForegroundColor Yellow 
+Write-host "A segunda lista está em outro ambiente do sharepoint? (Padrão: Sim)" -ForegroundColor Yellow 
 $userChoice = Read-Host " ( S / N ) "
 Switch ($userChoice) { 
     S {
-        $Site = Read-Host 'Qual a url do site de onde a lista é enviada?';
+        $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
         #While pra validar se url é vazia
         while (!$Site) {
-            $Site = Read-Host 'Qual a url do site de onde a lista é enviada?';
+            $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
         }
         $Site2 = Read-Host 'Qual a url do site para qual a lista será enviada?';
         #While pra validar se url é vazia
@@ -358,7 +576,7 @@ Switch ($userChoice) {
         if ($result -eq "UriFormatException" -or $result -eq "WebException" -or $result -eq "IdcrlException") {
             Write-Host "As credenciais ou URL do primeiro site estão inválidas, tente novamente!" -ForegroundColor Red
             do {
-                $retry = Read-Host 'Qual a url do site de onde a lista é enviada?'; 
+                $retry = Read-Host 'Qual a url do site de onde a lista será copiada?'; 
                 $retry2 = Read-Host 'Qual a url do site para qual a lista será enviada?';
 
                 $res = tryToConnect -siteurl $retry -isExternal $true -siteurl2 $retry2;
@@ -404,26 +622,33 @@ Switch ($userChoice) {
     } 
 
     Default {
-        $Site = Read-Host 'Qual a url quer navegar?';
+        $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
         #While pra validar se url é vazia
         while (!$Site) {
-            $Site = Read-Host 'Qual a url quer navegar?';  
+            $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
+        }
+        $Site2 = Read-Host 'Qual a url do site para qual a lista será enviada?';
+        #While pra validar se url é vazia
+        while (!$Site2) {
+            $Site2 = Read-Host 'Qual a url do site para qual a lista será enviada?';
         }
 
-        $result = tryToConnect -siteurl $Site;
+        $result = tryToConnect -siteurl $Site -isExternal $true -siteurl2 $Site2;
         if ($result -eq "UriFormatException" -or $result -eq "WebException" -or $result -eq "IdcrlException") {
-    
+            Write-Host "As credenciais ou URL do primeiro site estão inválidas, tente novamente!" -ForegroundColor Red
             do {
-                $retry = Read-Host 'Qual a url quer navegar?'; 
-                $res = tryToConnect -siteurl $retry
+                $retry = Read-Host 'Qual a url do site de onde a lista será copiada?'; 
+                $retry2 = Read-Host 'Qual a url do site para qual a lista será enviada?';
+
+                $res = tryToConnect -siteurl $retry -isExternal $true -siteurl2 $retry2;
                 if ($res -eq "UriFormatException") {
                     Write-Host "Url não válida!" -ForegroundColor Red      
                 }
                 if ($res -eq "WebException") {
-                    Write-Host "As credenciais ou URL estão inválidas" -ForegroundColor Red      
+                    Write-Host "As credenciais ou URL do primeiro site estão inválidas, tente novamente!" -ForegroundColor Red      
                 }
                 if ($res -eq "IdcrlException") {
-                    Write-Host "As credenciais estão inválidas" -ForegroundColor Red 
+                    Write-Host "As credenciais estão inválidas, tente novamente!" -ForegroundColor Red 
                 }
             }
             while ($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") 
