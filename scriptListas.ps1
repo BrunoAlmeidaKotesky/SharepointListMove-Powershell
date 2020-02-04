@@ -2,6 +2,31 @@
 $currentTime = $(get-date).ToString("dd-MM-yyyy-HHmmss")  
 $logFilePath = ".\log-" + $currentTime + ".docx"  
 
+function Copy-SPOAttachments($SourceItem, $TargetItem) {
+    Try {
+        #Get All Attachments from Source
+        $Attachments = Get-PnPProperty -ClientObject $SourceItem -Property "AttachmentFiles"
+        $Attachments | ForEach-Object {
+        #Download the Attachment to Temp
+        $File  = Get-PnPFile -Url $_.ServerRelativeUrl -FileName $_.FileName -Path $env:TEMP -AsFile -force
+ 
+        #Add Attachment to Target List Item
+        $FileStream = New-Object IO.FileStream(($env:TEMP+"\"+$_.FileName),[System.IO.FileMode]::Open) 
+        $AttachmentInfo = New-Object -TypeName Microsoft.SharePoint.Client.AttachmentCreationInformation
+        $AttachmentInfo.FileName = $_.FileName
+        $AttachmentInfo.ContentStream = $FileStream
+        $AttachFile = $TargetItem.AttachmentFiles.add($AttachmentInfo)
+        $Context.ExecuteQuery()   
+     
+        #Delete the Temporary File
+        Remove-Item -Path $env:TEMP\$($_.FileName) -Force
+        }
+    }
+    Catch {
+        write-host -f Red "Error Copying Attachments:" $_.Exception.Message
+    }
+}
+
 function loadLists {
     param([string]$ListDe, [string]$ListPara)
     #Pegando as listas
@@ -124,12 +149,17 @@ function loadLists {
                                     $jsonBase.Add($campo, $item[$campo]);
                                 }
                             }
+
+                            
+
                             if ($identifyTitle.Length -gt 0) {
                                 #Adicione cada item com os valores do json montado
-                                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                                $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                                Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
                             }
                             else {
-                                Add-PnPListItem -List $ListPara -Values $jsonBase
+                                $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
+                                Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
                             }
                         }
                 
@@ -188,10 +218,12 @@ function loadLists {
                             }
                             if ($identifyTitle.Length -gt 0) {
                                 #Adicione cada item com os valores do json montado
-                                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                                $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                                Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
                             }
                             else {
-                                Add-PnPListItem -List $ListPara -Values $jsonBase
+                                $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
+                                Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
                             }
                         }
                 
@@ -376,10 +408,12 @@ function loadListsFromMultipleSites {
                             }
                             if ($identifyTitle.Length -gt 0) {
                                 #Adicione cada item com os valores do json montado
-                                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                                $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                                Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
                             }
                             else {
-                                Add-PnPListItem -List $ListPara -Values $jsonBase
+                                $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
+                                Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
                             }
                         }
                 
@@ -438,10 +472,12 @@ function loadListsFromMultipleSites {
                             }
                             if ($identifyTitle.Length -gt 0) {
                                 #Adicione cada item com os valores do json montado
-                                Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                                $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+                                Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
                             }
                             else {
-                                Add-PnPListItem -List $ListPara -Values $jsonBase
+                                $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
+                                Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
                             }
                         }
                 
