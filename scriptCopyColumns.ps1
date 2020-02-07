@@ -1,97 +1,24 @@
-#Function to copy attachments between list items
-Function Copy-SPOAttachments($SourceItem, $TargetItem)
-{
-    Try {
-        #Get All Attachments from Source
-        $Attachments = Get-PnPProperty -ClientObject $SourceItem -Property "AttachmentFiles"
-        $Attachments | ForEach-Object {
-        #Download the Attachment to Temp
-        $File  = Get-PnPFile -Url $_.ServerRelativeUrl -FileName $_.FileName -Path $env:TEMP -AsFile -force
- 
-        #Add Attachment to Target List Item
-        $FileStream = New-Object IO.FileStream(($env:TEMP+"\"+$_.FileName),[System.IO.FileMode]::Open) 
-        $AttachmentInfo = New-Object -TypeName Microsoft.SharePoint.Client.AttachmentCreationInformation
-        $AttachmentInfo.FileName = $_.FileName
-        $AttachmentInfo.ContentStream = $FileStream
-        $AttachFile = $TargetItem.AttachmentFiles.add($AttachmentInfo)
-        $Context.ExecuteQuery()   
-     
-        #Delete the Temporary File
-        Remove-Item -Path $env:TEMP\$($_.FileName) -Force
+
+function retryConnection {
+    Param ([string]$siteurl , [boolean]$isExternal = $false)
+
+    try {
+        if ($true -eq $isExternal -and $null -ne $siteurl) {
+            Write-Host "Insira as credenciais da primeira URL!" -ForegroundColor Yellow
+            Connect-PnPOnline -Url $siteurl;
+            return "MultipleConnection";
+        }
+        elseif ($false -eq $isExternal -or $null -eq $isExternal) {
+            Write-Host "Insira as credenciais da primeira URL!" -ForegroundColor Yellow
+            Connect-PnPOnline -Url $siteurl;
+            return "SingleConnection";
         }
     }
-    Catch {
-        write-host -f Red "Error Copying Attachments:" $_.Exception.Message
+    catch [Exception] {
+        $ErrorMessage = $_.CategoryInfo.Reason; 
+        return $ErrorMessage;
     }
 }
- 
-#Function to list items from one list to another
-Function Copy-SPOListItems()
-{
-    param
-    (
-        [Parameter(Mandatory=$true)] [string] $SourceListName,
-        [Parameter(Mandatory=$true)] [string] $TargetListName
-    )
-    
-        #Get All Items from the Source List in batches
-        Write-Progress -Activity "Reading Source..." -Status "Getting Items from Source List. Please wait..."
-        $SourceListItems = Get-PnPListItem -List /Lists/ListaLivroGP
-        $SourceListItemsCount= $SourceListItems.count
-        Write-host "Total Number of Items Found:"$SourceListItemsCount       
- 
-        #Get fields to Update from the Source List - Skip Read only, hidden fields, content type and attachments
-        $SourceListFields = Get-PnPField -List /Lists/ListaLivroGP;
-     
-        #Loop through each item in the source and Get column values, add them to target
-        [int]$Counter = 1
-        ForEach($SourceItem in $SourceListItems)
-        { 
-            $ItemValue = @{}
-            #Map each field from source list to target list
-            Foreach($SourceField in $SourceListFields)
-            {
-                #Check if the Field value is not Null
-                If(!$SourceItem[$SourceField.InternalName])
-                {
-                    #Handle Special Fields
-                    $FieldType  = $SourceField.TypeAsString
- 
-                   
-                        #Get Source Field Value and add to Hashtable
-             $ItemValue.add($SourceField.InternalName,$SourceItem[$SourceField.InternalName])
-                
-                }
-            }
-            Write-Progress -Activity "Copying List Items:" -Status "Copying Item ID '$($SourceItem.Id)' from Source List ($($Counter) of $($SourceListItemsCount))" -PercentComplete (($Counter / $SourceListItemsCount) * 100)
-         
-            #Copy column value from source to target
-            $NewItem = Add-PnPListItem -List $TargetListName -Values $ItemValue
- 
-            #Copy Attachments
-            Copy-SPOAttachments -SourceItem $SourceItem -TargetItem $NewItem
- 
-            Write-Host "Copied Item ID from Source to Target List:$($SourceItem.Id) ($($Counter) of $($SourceListItemsCount))"
-            $Counter++
-        }
-
-}
- 
-#Connect to PnP Online
-Connect-PnPOnline -Url "https://trentim.sharepoint.com" -Credentials (Get-Credential)
-$Context = Get-PnPContext
- 
-#Call the Function to Copy List Items between Lists
-Copy-SPOListItems -SourceListName "ListaLivroGP" -TargetListName "testeDavi"
-
-
-#Read more: https://www.sharepointdiary.com/2017/01/sharepoint-online-copy-list-items-to-another-list-using-powershell.html#ixzz6CKlMgc5r
-
-
-
-
-
-
 
 function userOptions {
     param([bool]$option = $true)
@@ -100,8 +27,11 @@ function userOptions {
     while (!$Site) {
         $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
     }
+    $connectionType;
+
     if($false -eq $option){
         $Site2 = $null;
+        $connectionType = $false;
     }
     else{
         $Site2 = Read-Host 'Qual a url do site para qual a lista será criada?';
@@ -109,9 +39,10 @@ function userOptions {
         while (!$Site2) {
             $Site2 = Read-Host 'Qual a url do site para qual a lista será criada?';
         }
+        $connectionType = $true;
     }
-    
-    $result = retryConnection -siteurl $Site -isExternal $true;
+
+    $result = retryConnection -siteurl $Site -isExternal $connectionType;
     if ($result -eq "UriFormatException" -or $result -eq "WebException" -or $result -eq "IdcrlException") {
         Write-Host "As credenciais ou URL do primeiro site estão inválidas, tente novamente!" -ForegroundColor Red
         do {
@@ -119,7 +50,7 @@ function userOptions {
             ##NAO UTILIZADO AINDA
             $retry2 = Read-Host 'Qual a url do site para qual a lista será criada?';
 
-            $res = retryConnection -siteurl $retry -isExternal $true;
+            $res = retryConnection -siteurl $retry -isExternal $connectionType;
             if ($res -eq "UriFormatException") {
                 Write-Host "Url não válida!" -ForegroundColor Red      
             }
@@ -189,8 +120,7 @@ function userOptions {
             }
         }
         while ($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") 
-    };
-    #Se for em mais um tenanat
+    }
     elseif ($result -eq "MultipleConnection") {
         #Executa funcao de pegar lista no mesmo tenanat
         $ListDe = Read-Host 'Qual lista deseja copiar?';
@@ -247,7 +177,86 @@ function userOptions {
                 }
                 while ($res -eq "Valor inválido") 
             };
-
         }
     }
+}
+
+function copyAndCreateList {
+    param([string]$ListDe , [string]$ListPara, [string]$segundoSite)
+    #Verificando se o valor da lista é nulo
+    if ($ListDe -eq $null -or $ListDe -eq "") {
+        return "Valor inválido";
+    }
+
+    if ($ListPara -eq $null -or $ListPara -eq "") {
+        return "Valor inválido";
+    }
+    else {
+
+        $sourceList = Get-PnPList -Identity $ListDe;
+        $allSourceFields =Get-PnPField -List $ListDe
+        $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };
+        #Carregando o contexto da lista
+        
+
+        if ($null -eq $sourceList -or $ListPara -eq $null -or $ListDe -eq $null) { return "Valor inválido"; } 
+        #Se for no mesmo tenant
+        if ($null -eq $segundoSite -or $segundoSite -eq "") {
+            $novaLista = New-PnPList -Title $ListPara -Template GenericList;
+            foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
+                if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
+                    if($field.Required -eq $true){
+                        $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required $-Type $field.TypeAsString  -InternalName $field.InternalName;
+                    }
+                    else{
+                        $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
+                    }
+                }
+            }
+        }
+        #Se for em mais de um tenanat
+        else {
+            Disconnect-PnPOnline;
+            $connectionRes = retryConnection -siteurl $segundoSite -isExternal $true;
+            if ($connectionRes -eq "UriFormatException" -or $connectionRes -eq "WebException" -or $connectionRes -eq "IdcrlException") {
+                Write-Host "A url ou credenciais informadas para o site alvo estão inválidas, tente novamente!" -ForegroundColor Red;
+                do {
+                    $retry = Read-Host 'Qual a url do site para qual a lista será enviada?';
+    
+                    $res = retryConnection -siteurl $retry -isExternal $true;
+                    if ($res -eq "UriFormatException") {
+                        Write-Host "Url não válida!" -ForegroundColor Red      
+                    }
+                    if ($res -eq "WebException") {
+                        Write-Host "As credenciais ou URL estão inválidas" -ForegroundColor Red      
+                    }
+                    if ($res -eq "IdcrlException") {
+                        Write-Host "As credenciais estão inválidas" -ForegroundColor Red 
+                    }
+                }
+                while ($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") 
+            }
+            elseif ($connectionRes -eq "MultipleConnection") {
+                $novaLista = New-PnPList -Title $ListPara -Template GenericList;
+                foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
+                    if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
+                        if($field.Required -eq $true){
+                            $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
+                        }
+                        else{
+                            $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+Write-host "A transferência da lista, irá ocorrer no em outro ambiente do Sharepoint?" -ForegroundColor Yellow 
+$userChoice = Read-Host " ( S / N ) "
+Switch ($userChoice) { 
+    S { userOptions -option $true; }
+    N { userOptions -option $false; } 
+    Default { userOptions -option $true; }
 }
