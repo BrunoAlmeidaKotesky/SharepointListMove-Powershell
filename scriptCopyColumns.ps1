@@ -233,29 +233,37 @@ function copyAndCreateList {
     else {
         if($true -eq $lostContext){
             $tenant1 = retryConnection -siteurl $firstUrl -isExternal $true;
-            if ($tenant1 -eq "UriFormatException") {
-                Write-Host "Url não válida!" -ForegroundColor Red      
+            if ($tenant1 -eq "UriFormatException" -or $connectionRes -eq "WebException" -or $connectionRes -eq "IdcrlException") {
+                Write-Host "A url ou credenciais informadas para o site alvo estão inválidas, tente novamente!" -ForegroundColor Red;
+                do {
+                    $retry = Read-Host 'Insira novamente a primeira url relacionada a lista origem.';
+    
+                    $res = retryConnection -siteurl $retry -isExternal $true;
+                    if ($res -eq "UriFormatException") {
+                        Write-Host "Url não válida!" -ForegroundColor Red      
+                    }
+                    if ($res -eq "WebException") {
+                        Write-Host "As credenciais ou URL estão inválidas" -ForegroundColor Red      
+                    }
+                    if ($res -eq "IdcrlException") {
+                        Write-Host "As credenciais estão inválidas" -ForegroundColor Red 
+                    }
+                    if($res -eq "MultipleConnection"){
+                        $sourceList = Get-PnPList -Identity $ListDe;
+                        $allSourceFields =Get-PnPField -List $ListDe
+                        $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };}
+                } while($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException")
             }
-            if ($tenant1 -eq "WebException") {
-                Write-Host "As credenciais ou URL estão inválidas" -ForegroundColor Red      
-            }
-            if ($tenant1 -eq "IdcrlException") {
-                Write-Host "As credenciais estão inválidas" -ForegroundColor Red 
-            }
-            if($tenant1 -eq "MultipleConnection"){
+            elseif ($tenant1 -eq "MultipleConnection"){
                 $sourceList = Get-PnPList -Identity $ListDe;
                 $allSourceFields =Get-PnPField -List $ListDe
                 $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };
             }
         }
-
-
+        #Carregando o contexto da lista
         $sourceList = Get-PnPList -Identity $ListDe;
         $allSourceFields =Get-PnPField -List $ListDe
         $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };
-        #Carregando o contexto da lista
-        
-
         
         #Se for no mesmo tenant
         if ($null -eq $segundoSite -or $segundoSite -eq "") {
