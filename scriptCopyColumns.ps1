@@ -282,6 +282,7 @@ function copyAndCreateList {
                             }
                         }
                     }
+                    Write-Host "Lista copiada com sucesso!" -ForegroundColor Green;
                 }
                 catch [Excption]{
                     Remove-PnPList -Identity $ListPara -Force;
@@ -315,7 +316,7 @@ function copyAndCreateList {
                     if($res -eq "MultipleConnection"){
                         $listExists = Get-PnPList -Identity $ListPara.Replace("Lists/", "");
                         if($null -eq $listExists){
-                            $novaLista = New-PnPList -Title $ListPara -Template GenericList;
+                            $novaLista = New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                         try {
                             foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
                                 if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
@@ -327,6 +328,7 @@ function copyAndCreateList {
                                     }
                                 }
                             }
+                            Write-Host "Lista copiada com sucesso!" -ForegroundColor Green;
                         }
                         catch [Excption]{
                             Remove-PnPList -Identity $ListPara -Force;
@@ -343,7 +345,7 @@ function copyAndCreateList {
             elseif ($connectionRes -eq "MultipleConnection") {
                 $listExists = Get-PnPList -Identity $ListPara.Replace("Lists/", "");
                 if($null -eq $listExists){
-                    $novaLista = New-PnPList -Title $ListPara -Template GenericList;
+                    $novaLista =New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                 try {
                     foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
                         if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
