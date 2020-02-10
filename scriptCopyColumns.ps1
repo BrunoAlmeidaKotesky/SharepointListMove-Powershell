@@ -23,10 +23,10 @@ function retryConnection {
 
 function userOptions {
     param([bool]$option = $true)
-    $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
+    $Site = Read-Host 'Qual a url do site de onde a lista sera copiada?';
     #While pra validar se url é vazia
     while (!$Site) {
-        $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
+        $Site = Read-Host 'Qual a url do site de onde a lista sera copiada?';
     }
     $connectionType;
 
@@ -35,31 +35,31 @@ function userOptions {
         $connectionType = $false;
     }
     else{
-        $Site2 = Read-Host 'Qual a url do site para qual a lista será criada?';
+        $Site2 = Read-Host 'Qual a url do site para qual a lista sera criada?';
         #While pra validar se url é vazia
         while (!$Site2) {
-            $Site2 = Read-Host 'Qual a url do site para qual a lista será criada?';
+            $Site2 = Read-Host 'Qual a url do site para qual a lista sera criada?';
         }
         $connectionType = $true;
     }
 
     $result = retryConnection -siteurl $Site -isExternal $connectionType;
     if ($result -eq "UriFormatException" -or $result -eq "WebException" -or $result -eq "IdcrlException") {
-        Write-Host "As credenciais ou URL do primeiro site estão inválidas, tente novamente!" -ForegroundColor Red
+        Write-Host "As credenciais ou URL do primeiro site estao invalidas, tente novamente!" -ForegroundColor Red
         do {
-            $retry = Read-Host 'Qual a url do site de onde a lista será copiada?'; 
+            $retry = Read-Host 'Qual a url do site de onde a lista sera copiada?'; 
             ##NAO UTILIZADO AINDA
-            $retry2 = Read-Host 'Qual a url do site para qual a lista será criada?';
+            $retry2 = Read-Host 'Qual a url do site para qual a lista sera criada?';
 
             $res = retryConnection -siteurl $retry -isExternal $connectionType;
             if ($res -eq "UriFormatException") {
-                Write-Host "Url não válida!" -ForegroundColor Red      
+                Write-Host "Url nao valida!" -ForegroundColor Red      
             }
             if ($res -eq "WebException") {
-                Write-Host "As credenciais ou URL do primeiro site estão inválidas, tente novamente!" -ForegroundColor Red      
+                Write-Host "As credenciais ou URL do primeiro site estao invalidas, tente novamente!" -ForegroundColor Red      
             }
             if ($res -eq "IdcrlException") {
-                Write-Host "As credenciais estão inválidas, tente novamente!" -ForegroundColor Red 
+                Write-Host "As credenciais estao invalidas, tente novamente!" -ForegroundColor Red 
             }
             if ($res -eq "MultipleConnection") {
                 #Executa funcao de pegar lista no mesmo tenanat
@@ -67,19 +67,19 @@ function userOptions {
                 if ($ListDe -ne $null) {
                     $ListDe = "Lists/" + $ListDe;        
                 }
-                $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+                $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
                 if ($null -ne $ListPara -and $null -ne $ListDe) {
                     #Executa a copyListandCreate
                     $res = copyAndCreateList -ListDe $ListDe -ListPara $ListPara -segundoSite $Site2;
                     if ($res -eq "ListAlreadyExists") {
             
                         do {      
-                            Write-Host "Listas não encontradas, insira novamente!" -ForegroundColor Red
+                            Write-Host "Listas nao encontradas, insira novamente!" -ForegroundColor Red
                             $ListDe = Read-Host 'Qual lista deseja copiar?';
                             if ($ListDe -ne $null) {
                                 $ListDe = "Lists/" + $ListDe;        
                             }
-                            $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+                            $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
                             if ($ListPara -ne $null) {
                                 $ListPara = "Lists/" + $ListPara;
                             }
@@ -90,12 +90,12 @@ function userOptions {
                     elseif($res -eq "TenantDisconnected"){
 
                         do {      
-                            Write-Host "Listas não encontradas, insira novamente!" -ForegroundColor Red
+                            Write-Host "Listas nao encontradas, insira novamente!" -ForegroundColor Red
                             $ListDe = Read-Host 'Qual lista deseja copiar?';
                             if ($ListDe -ne $null) {
                                 $ListDe = "Lists/" + $ListDe;        
                             }
-                            $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+                            $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
                             if ($ListPara -ne $null) {
                                 $ListPara = "Lists/" + $ListPara;
                             }
@@ -112,19 +112,19 @@ function userOptions {
                 if ($ListDe -ne $null) {
                     $ListDe = "Lists/" + $ListDe;        
                 }
-                $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+                $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
                 if ($null -ne $ListPara -and $null -ne $ListDe) {
                     #Executa a copyListandCreate
                     $res = copyAndCreateList -ListDe $ListDe -ListPara $ListPara;
                     if ($res -eq "Valor inválido") {
             
                         do {      
-                            Write-Host "Listas não encontradas, insira novamente!" -ForegroundColor Red
+                            Write-Host "Listas nao encontradas, insira novamente!" -ForegroundColor Red
                             $ListDe = Read-Host 'Qual lista deseja copiar?';
                             if ($ListDe -ne $null) {
                                 $ListDe = "Lists/" + $ListDe;        
                             }
-                            $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+                            $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
                             if ($ListPara -ne $null) {
                                 $ListPara = "Lists/" + $ListPara;
                             }
@@ -144,19 +144,19 @@ function userOptions {
         if ($ListDe -ne $null) {
             $ListDe = "Lists/" + $ListDe;        
         }
-        $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+        $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
         if ($null -ne $ListPara -and $null -ne $ListDe) {
             #Executa a copyListandCreate
             $res = copyAndCreateList -ListDe $ListDe -ListPara $ListPara -segundoSite $Site2;
             if ($res -eq "ListAlreadyExists") {
                 
                 do {      
-                    Write-Host "Listas não encontradas, insira novamente!" -ForegroundColor Red
+                    Write-Host "Listas nao encontradas, insira novamente!" -ForegroundColor Red
                     $ListDe = Read-Host 'Qual lista deseja copiar?';
                     if ($ListDe -ne $null) {
                         $ListDe = "Lists/" + $ListDe;        
                     }
-                    $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+                    $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
                     if ($ListPara -ne $null) {
                         $ListPara = "Lists/" + $ListPara;
                     }
@@ -167,12 +167,12 @@ function userOptions {
             elseif ($res -eq "TenantDisconnected"){
 
                 do {      
-                    Write-Host "Listas não encontradas, insira novamente!" -ForegroundColor Red
+                    Write-Host "Listas nao encontradas, insira novamente!" -ForegroundColor Red
                     $ListDe = Read-Host 'Qual lista deseja copiar?';
                     if ($ListDe -ne $null) {
                         $ListDe = "Lists/" + $ListDe;        
                     }
-                    $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+                    $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
                     if ($ListPara -ne $null) {
                         $ListPara = "Lists/" + $ListPara;
                     }
@@ -190,19 +190,19 @@ function userOptions {
         if ($ListDe -ne $null) {
             $ListDe = "Lists/" + $ListDe;        
         }
-        $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+        $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
         if ($null -ne $ListPara -and $null -ne $ListDe) {
             #Executa a copyListandCreate
             $res = copyAndCreateList -ListDe $ListDe -ListPara $ListPara;
             if ($res -eq "Valor inválido") {
     
                 do {      
-                    Write-Host "Listas não encontradas, insira novamente!" -ForegroundColor Red
+                    Write-Host "Listas nao encontradas, insira novamente!" -ForegroundColor Red
                     $ListDe = Read-Host 'Qual lista deseja copiar?';
                     if ($ListDe -ne $null) {
                         $ListDe = "Lists/" + $ListDe;        
                     }
-                    $ListPara = Read-Host 'Qual o nome da lista que deseja criar??';
+                    $ListPara = Read-Host 'Qual o nome da lista que deseja criar?';
                     if ($ListPara -ne $null) {
                         $ListPara = "Lists/" + $ListPara;
                     }
@@ -232,21 +232,22 @@ function copyAndCreateList {
     }
     else {
         if($true -eq $lostContext){
+            Write-Host "Ocorreu um erro ao obter a primeira lista, por favor insira a primeira URL novamente para re-obter a lista" -ForegroundColor Yellow;
             $tenant1 = retryConnection -siteurl $firstUrl -isExternal $true;
             if ($tenant1 -eq "UriFormatException" -or $connectionRes -eq "WebException" -or $connectionRes -eq "IdcrlException") {
-                Write-Host "A url ou credenciais informadas para o site alvo estão inválidas, tente novamente!" -ForegroundColor Red;
+                Write-Host "A url ou credenciais informadas para o site estao invalidas, tente novamente!" -ForegroundColor Red;
                 do {
                     $retry = Read-Host 'Insira novamente a primeira url relacionada a lista origem.';
     
                     $res = retryConnection -siteurl $retry -isExternal $true;
                     if ($res -eq "UriFormatException") {
-                        Write-Host "Url não válida!" -ForegroundColor Red      
+                        Write-Host "Url nao valida!" -ForegroundColor Red      
                     }
                     if ($res -eq "WebException") {
-                        Write-Host "As credenciais ou URL estão inválidas" -ForegroundColor Red      
+                        Write-Host "As credenciais ou URL estão invalidas" -ForegroundColor Red      
                     }
                     if ($res -eq "IdcrlException") {
-                        Write-Host "As credenciais estão inválidas" -ForegroundColor Red 
+                        Write-Host "As credenciais estao invalidas" -ForegroundColor Red 
                     }
                     if($res -eq "MultipleConnection"){
                         $sourceList = Get-PnPList -Identity $ListDe;
@@ -282,14 +283,14 @@ function copyAndCreateList {
                             }
                         }
                     }
-                    Write-Host "Lista copiada com sucesso!" -ForegroundColor Green;
+                    Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                 }
                 catch [Excption]{
                     Remove-PnPList -Identity $ListPara -Force;
                     return $_;
                 }
             }
-            else{ Write-Host "Já existe uma lísta com esse nome!" -ForegroundColor Red
+            else{ Write-Host "Ja existe uma lista com esse nome!" -ForegroundColor Red
                   return "Valor inválido";
             }
         }
@@ -297,21 +298,22 @@ function copyAndCreateList {
         else {
             if ($null -eq $sourceList) { return "TenantDisconnected"; } 
             Disconnect-PnPOnline;
+            Write-Host "Insira as credenciais da segunda URL para onde a lista sera copiada" -ForegroundColor Yellow;
             $connectionRes = retryConnection -siteurl $segundoSite -isExternal $true;
             if ($connectionRes -eq "UriFormatException" -or $connectionRes -eq "WebException" -or $connectionRes -eq "IdcrlException") {
-                Write-Host "A url ou credenciais informadas para o site alvo estão inválidas, tente novamente!" -ForegroundColor Red;
+                Write-Host "A url ou credenciais informadas para o site alvo estão invalidas, tente novamente!" -ForegroundColor Red;
                 do {
-                    $retry = Read-Host 'Qual a url do site para qual a lista será  criada??';
+                    $retry = Read-Host 'Qual a url do site para qual a lista sera criada?';
     
                     $res = retryConnection -siteurl $retry -isExternal $true;
                     if ($res -eq "UriFormatException") {
-                        Write-Host "Url não válida!" -ForegroundColor Red      
+                        Write-Host "Url nao valida!" -ForegroundColor Red      
                     }
                     if ($res -eq "WebException") {
-                        Write-Host "As credenciais ou URL estão inválidas" -ForegroundColor Red      
+                        Write-Host "As credenciais ou URL estao invalidas" -ForegroundColor Red      
                     }
                     if ($res -eq "IdcrlException") {
-                        Write-Host "As credenciais estão inválidas" -ForegroundColor Red 
+                        Write-Host "As credenciais estao invalidas" -ForegroundColor Red 
                     }
                     if($res -eq "MultipleConnection"){
                         $listExists = Get-PnPList -Identity $ListPara.Replace("Lists/", "");
@@ -327,15 +329,15 @@ function copyAndCreateList {
                                         $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
                                     }
                                 }
-                            }
-                            Write-Host "Lista copiada com sucesso!" -ForegroundColor Green;
+                            }   
+                            Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                         }
                         catch [Excption]{
                             Remove-PnPList -Identity $ListPara -Force;
                             return $_;
                         }
                         }
-                        else{ Write-Host "Já existe uma lísta com esse nome!" -ForegroundColor Red
+                        else{ Write-Host "Ja existe uma lista com esse nome!" -ForegroundColor Red
                               return "ListAlreadyExists";
                         }
                     }
@@ -345,7 +347,7 @@ function copyAndCreateList {
             elseif ($connectionRes -eq "MultipleConnection") {
                 $listExists = Get-PnPList -Identity $ListPara.Replace("Lists/", "");
                 if($null -eq $listExists){
-                    $novaLista =New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
+                    $novaLista = New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                 try {
                     foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
                         if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
@@ -357,13 +359,14 @@ function copyAndCreateList {
                             }
                         }
                     }
+                 Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                 }
                 catch [Excption]{
                     Remove-PnPList -Identity $ListPara -Force;
                     return $_;
                 }
                 }
-                else{ Write-Host "Já existe uma lísta com esse nome!" -ForegroundColor Red
+                else{ Write-Host "Ja existe uma lista com esse nome!" -ForegroundColor Red
                       return "ListAlreadyExists";
                 }
             }
@@ -371,7 +374,7 @@ function copyAndCreateList {
     }
 }
 
-Write-host "A transferência da lista, irá ocorrer no em outro ambiente do Sharepoint?" -ForegroundColor Yellow 
+Write-host "A transferencia da lista, ira ocorrer no em outro ambiente do Sharepoint?" -ForegroundColor Yellow 
 $userChoice = Read-Host " ( S / N ) "
 Switch ($userChoice) { 
     S { userOptions -option $true; }
