@@ -197,21 +197,32 @@ function copyAndCreateList {
         $allSourceFields =Get-PnPField -List $ListDe
         $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };
         #Carregando o contexto da lista
-        
+        $listExists = Get-PnPList -Identity $ListPara;
 
         if ($null -eq $sourceList -or $ListPara -eq $null -or $ListDe -eq $null) { return "Valor inválido"; } 
         #Se for no mesmo tenant
         if ($null -eq $segundoSite -or $segundoSite -eq "") {
-            $novaLista = New-PnPList -Title $ListPara -Template GenericList;
-            foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
-                if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
-                    if($field.Required -eq $true){
-                        $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required $-Type $field.TypeAsString  -InternalName $field.InternalName;
-                    }
-                    else{
-                        $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
+            if($null -ne $listExists){
+                $novaLista = New-PnPList -Title $ListPara -Template GenericList;
+                try {
+                    foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
+                        if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
+                            if($field.Required -eq $true){
+                                $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
+                            }
+                            else{
+                                $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
+                            }
+                        }
                     }
                 }
+                catch [Excption]{
+                    Remove-PnPList -Identity $ListPara -Force;
+                    return $_;
+                }
+            }
+            else{ Write-Host "Já existe uma lísta com esse nome!" -ForegroundColor Red
+                  return "Valor inválido";
             }
         }
         #Se for em mais de um tenanat
@@ -237,16 +248,28 @@ function copyAndCreateList {
                 while ($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") 
             }
             elseif ($connectionRes -eq "MultipleConnection") {
-                $novaLista = New-PnPList -Title $ListPara -Template GenericList;
-                foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
-                    if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
-                        if($field.Required -eq $true){
-                            $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
-                        }
-                        else{
-                            $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
+                
+                if($null -ne $listExists){
+                    $novaLista = New-PnPList -Title $ListPara -Template GenericList;
+                try {
+                    foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
+                        if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
+                            if($field.Required -eq $true){
+                                $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
+                            }
+                            else{
+                                $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
+                            }
                         }
                     }
+                }
+                catch [Excption]{
+                    Remove-PnPList -Identity $ListPara -Force;
+                    return $_;
+                }
+                }
+                else{ Write-Host "Já existe uma lísta com esse nome!" -ForegroundColor Red
+                      return "Valor inválido";
                 }
             }
         }
