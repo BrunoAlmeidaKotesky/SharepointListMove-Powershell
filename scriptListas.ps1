@@ -27,6 +27,71 @@ function Copy-SPOAttachments($SourceItem, $TargetItem) {
     }
 }
 
+function addItemsToList {
+    param($sourceItems, $ListPara, [bool]$ehAnterior, $outputFilePath, $listaEncontrados, $nomeDoArq);
+    
+    $newEncontrados = @();
+     if ($ehAnterior -eq $false) {
+         Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
+             if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
+                 $CamposAlvo = $_.CamposAlvo;
+             }   
+             Write-Host $CamposAlvo
+             $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+         } 
+     }
+     else {
+         if ($nomeDoArq.endswith('.csv')) {
+             $nomeDoArq = ".\" + $nomeDoArq;
+         }
+         else {
+             $nomeDoArq = ".\" + $nomeDoArq + ".csv";
+         }
+     
+         Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
+             if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne ";") {
+                 $CamposAlvo = $_.CamposAlvo;
+             }     
+             Write-Host $CamposAlvos
+             $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
+         } 
+     }
+
+    foreach ($item in $sourceItems) {
+        $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
+        #Para cada campo na lista de campos encontrados, adicione em um json
+        $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
+        $novosEncontrados = $newEncontrados | ? { $_ -ne "|" };
+        foreach ($campo in $novosEncontrados) {
+            if ($campo -eq "|") {
+                $newEncontrados.Remove($campo);
+            }
+            $valor = $campo.Split('|')[1];
+            if ($valor -ne $null) {
+                $campoDe = $campo.Split('|')[0];
+                $jsonBase.Add($campoDe, $item[$valor]);
+            }
+            else {
+                $jsonBase.Add($campo, $item[$campo]);
+            }
+        }
+        if ($identifyTitle.Length -gt 0) {
+            #Adicione cada item com os valores do json montado
+            $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
+            Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
+        }
+        else {
+            $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
+            Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
+        }
+    }
+
+    Start-Sleep -s 2
+    Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
+    Start-Sleep -s 6
+}
+
+
 function loadLists {
     param([string]$ListDe, [string]$ListPara)
     #Pegando as listas
@@ -101,135 +166,14 @@ function loadLists {
                 $lerCsv = Read-Host " ( OK ) "
                 Switch ($lerCsv) { 
                     OK { 
-                        $newEncontrados = @();
-                        if ($ehAnterior -eq $false) {
-                            Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
-                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
-                                    $CamposAlvo = $_.CamposAlvo;
-                                }   
-                                Write-Host $CamposAlvo
-                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
-                            } 
-                        }
-                        else {
-                            if ($nomeDoArq.endswith('.csv')) {
-                                $nomeDoArq = ".\" + $nomeDoArq;
-                            }
-                            else {
-                                $nomeDoArq = ".\" + $nomeDoArq + ".csv";
-                            }
-                        
-                            Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
-                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
-                                    $CamposAlvo = $_.CamposAlvo;
-                                }    
-                                Write-Host $CamposAlvo
-                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
-                            } 
-                        }
-
                         Stop-Transcript
-                        $newEncontrados;
                         #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
-                        foreach ($item in $sourceItems) {
-                            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
-                            #Para cada campo na lista de campos encontrados, adicione em um json
-                            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
-                            $novosEncontrados = $newEncontrados | ? { $_ -ne "|" };
-                            foreach ($campo in $novosEncontrados) {
-                                if ($campo -eq "|") {
-                                    $newEncontrados.Remove($campo);
-                                }
-                                $valor = $campo.Split('|')[1];
-                                if ($valor -ne $null) {
-                                    $campoDe = $campo.Split('|')[0];
-                                    $jsonBase.Add($campoDe, $item[$valor]);
-                                }
-                                else {
-                                    $jsonBase.Add($campo, $item[$campo]);
-                                }
-                            }
-
-                            
-
-                            if ($identifyTitle.Length -gt 0) {
-                                #Adicione cada item com os valores do json montado
-                                $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
-                                Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
-                            }
-                            else {
-                                $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
-                                Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
-                            }
-                        }
-                
-                        Start-Sleep -s 2
-                        Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
-                        Start-Sleep -s 6
+                        addItemsToList -sourceItems $sourceItems -ListPara $ListPara -newEncontrados $newEncontrados -ehAnterior $ehAnterior -outputFilePath $outputFilePath -listEncontrados $listaEncontrados -nomeDoArq $nomeDoArq;
                     }
                     Default { 
-                        $newEncontrados = @();
-                        if ($ehAnterior -eq $false) {
-                            Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
-                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
-                                    $CamposAlvo = $_.CamposAlvo;
-                                }    
-                                Write-Host $CamposAlvo
-                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
-                            } 
-                        }
-                        else {
-                            if ($nomeDoArq.endswith('.csv')) {
-                                $nomeDoArq = ".\" + $nomeDoArq;
-                            }
-                            else {
-                                $nomeDoArq = ".\" + $nomeDoArq + ".csv";
-                            }
-                        
-                            Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
-                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
-                                    $CamposAlvo = $_.CamposAlvo;
-                                }    
-                                Write-Host $CamposAlvo
-                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
-                            } 
-                        }
-
                         Stop-Transcript
-                        $newEncontrados;
                         #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
-                        foreach ($item in $sourceItems) {
-                            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
-                            #Para cada campo na lista de campos encontrados, adicione em um json
-                            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
-                            $novosEncontrados = $newEncontrados | ? { $_ -ne "|" };
-                            foreach ($campo in $novosEncontrados) {
-                                if ($campo -eq "|") {
-                                    $newEncontrados.Remove($campo);
-                                }
-                                $valor = $campo.Split('|')[1];
-                                if ($valor -ne $null) {
-                                    $campoDe = $campo.Split('|')[0];
-                                    $jsonBase.Add($campoDe, $item[$valor]);
-                                }
-                                else {
-                                    $jsonBase.Add($campo, $item[$campo]);
-                                }
-                            }
-                            if ($identifyTitle.Length -gt 0) {
-                                #Adicione cada item com os valores do json montado
-                                $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
-                                Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
-                            }
-                            else {
-                                $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
-                                Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
-                            }
-                        }
-                
-                        Start-Sleep -s 2
-                        Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
-                        Start-Sleep -s 6
+                        addItemsToList -sourceItems $sourceItems -ListPara $ListPara -newEncontrados $newEncontrados -ehAnterior $ehAnterior -outputFilePath $outputFilePath -listEncontrados $listaEncontrados -nomeDoArq $nomeDoArq;
                     }
                 }
             }
@@ -391,132 +335,14 @@ function loadListsFromMultipleSites {
                 $lerCsv = Read-Host " ( OK ) "
                 Switch ($lerCsv) { 
                     OK { 
-                        $newEncontrados = @();
-                        if ($ehAnterior -eq $false) {
-                            Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
-                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
-                                    $CamposAlvo = $_.CamposAlvo;
-                                }    
-                                Write-Host $CamposAlvo
-                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
-                            } 
-                        }
-                        else {
-                            if ($nomeDoArq.endswith('.csv')) {
-                                $nomeDoArq = ".\" + $nomeDoArq;
-                            }
-                            else {
-                                $nomeDoArq = ".\" + $nomeDoArq + ".csv";
-                            }
-                        
-                            Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
-                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
-                                    $CamposAlvo = $_.CamposAlvo;
-                                }    
-                                Write-Host $CamposAlvo
-                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
-                            } 
-                        }
-
                         Stop-Transcript
-                        $newEncontrados;
                         #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
-                        foreach ($item in $sourceItems) {
-                            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
-                            #Para cada campo na lista de campos encontrados, adicione em um json
-                            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
-                            $novosEncontrados = $newEncontrados | ? { $_ -ne "|" };
-                            foreach ($campo in $novosEncontrados) {
-                                if ($campo -eq "|") {
-                                    $newEncontrados.Remove($campo);
-                                }
-                                $valor = $campo.Split('|')[1];
-                                if ($valor -ne $null) {
-                                    $campoDe = $campo.Split('|')[0];
-                                    $jsonBase.Add($campoDe, $item[$valor]);
-                                }
-                                else {
-                                    $jsonBase.Add($campo, $item[$campo]);
-                                }
-                            }
-                            if ($identifyTitle.Length -gt 0) {
-                                #Adicione cada item com os valores do json montado
-                                $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
-                                Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
-                            }
-                            else {
-                                $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
-                                Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
-                            }
-                        }
-                
-                        Start-Sleep -s 2
-                        Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
-                        Start-Sleep -s 6
+                        addItemsToList -sourceItems $sourceItems -ListPara $ListPara -newEncontrados $newEncontrados -ehAnterior $ehAnterior -outputFilePath $outputFilePath -listEncontrados $listaEncontrados -nomeDoArq $nomeDoArq;
                     }
                     Default { 
-                        $newEncontrados = @();
-                        if ($ehAnterior -eq $false) {
-                            Import-Csv -Path $outputFilePath -Delimiter ';' | ForEach-Object {  
-                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne "|") {
-                                    $CamposAlvo = $_.CamposAlvo;
-                                }   
-                                Write-Host $CamposAlvo
-                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
-                            } 
-                        }
-                        else {
-                            if ($nomeDoArq.endswith('.csv')) {
-                                $nomeDoArq = ".\" + $nomeDoArq;
-                            }
-                            else {
-                                $nomeDoArq = ".\" + $nomeDoArq + ".csv";
-                            }
-                        
-                            Import-Csv -Path $nomeDoArq -Delimiter ';' | ForEach-Object {  
-                                if ($_.CamposAlvo -ne "" -or $_.CamposLavo -ne ";") {
-                                    $CamposAlvo = $_.CamposAlvo;
-                                }     
-                                Write-Host $CamposAlvos
-                                $newEncontrados = $listaEncontrados += $camposAlvo + "|" + $_.CamposNaoEncontrados;
-                            } 
-                        }
-
                         Stop-Transcript
-                        $newEncontrados;
                         #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
-                        foreach ($item in $sourceItems) {
-                            $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
-                            #Para cada campo na lista de campos encontrados, adicione em um json
-                            $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
-                            $novosEncontrados = $newEncontrados | ? { $_ -ne "|" };
-                            foreach ($campo in $novosEncontrados) {
-                                if ($campo -eq "|") {
-                                    $newEncontrados.Remove($campo);
-                                }
-                                $valor = $campo.Split('|')[1];
-                                if ($valor -ne $null) {
-                                    $campoDe = $campo.Split('|')[0];
-                                    $jsonBase.Add($campoDe, $item[$valor]);
-                                }
-                                else {
-                                    $jsonBase.Add($campo, $item[$campo]);
-                                }
-                            }
-                            if ($identifyTitle.Length -gt 0) {
-                                #Adicione cada item com os valores do json montado
-                                $updatedItem = Set-PnPListItem -List $ListPara -Values $jsonBase -Identity $identifyTitle.Id;
-                                Copy-SPOAttachments -SourceItem $item -TargetItem $updatedItem;
-                            }
-                            else {
-                                $newItem = Add-PnPListItem -List $ListPara -Values $jsonBase
-                                Copy-SPOAttachments -SourceItem $item -TargetItem $newItem;
-                            }
-                        }
-                
-                        Start-Sleep -s 2
-                        Write-Host "Items enviados para a lista com sucesso!" -ForegroundColor Green
-                        Start-Sleep -s 6
+                        addItemsToList -sourceItems $sourceItems -ListPara $ListPara -newEncontrados $newEncontrados -ehAnterior $ehAnterior -outputFilePath $outputFilePath -listEncontrados $listaEncontrados -nomeDoArq $nomeDoArq;
                     }
                 }
             }

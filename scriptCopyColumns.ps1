@@ -214,11 +214,57 @@ function userOptions {
     }
 }
 
-function disconnectAndSetStatus {
-    Disconnect-PnPOnline;
-    $isDisconnect = $true;
-    return $isDisconnect;
-}
+
+function addFields() {
+    param($sourceFields, [string]$ListPara, $ctx, [bool]$isExternal);
+    foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
+        if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
+            if($field.Required -eq $true){
+                if($field.FieldTypeKind -eq "Lookup"){
+                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Lookup  -InternalName $field.InternalName;
+                    $lkField = $novaColuna.TypedObject;
+                    $lookId1 = $field.LookupList.Replace("{", "");
+                    $lookId2 = $lookId1.Replace("}", "");
+                    if($true -eq $isExternal){
+                        
+                    }
+                    else {
+                        $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
+                        $lkField.LookupField = $field.LookupField;
+                    }
+                    $lkField.update();
+                    $ctx.ExecuteQuery();
+                }
+                else {
+                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
+                }
+            }
+            else{
+                if($field.FieldTypeKind -eq "Lookup"){
+                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Lookup -InternalName $field.InternalName;
+                    $lkField = $novaColuna.TypedObject;
+                    $lookId1 = $field.LookupList.Replace("{", "");
+                    $lookId2 = $lookId1.Replace("}", "");
+                    if($true -eq $isExternal){
+                        $ls = Get-PnPList -Identity $ListPara;
+                        $lkField.LookupList = $ls.Id  #use the actual ID of the list, not the name
+                        $lkField.LookupField = $field.LookupField;
+                    }
+                    else {
+                        $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
+                        $lkField.LookupField = $field.LookupField;
+                    }
+                    $lkField.update();
+                    $ctx.ExecuteQuery();
+                }
+                else{
+                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
+                }
+                
+            }
+        }
+    }
+};
 
 function copyAndCreateList {
     param([string]$ListDe, [string]$ListPara, [string]$segundoSite, [bool]$lostContext, [string]$firstUrl)
@@ -252,20 +298,23 @@ function copyAndCreateList {
                     if($res -eq "MultipleConnection"){
                         $sourceList = Get-PnPList -Identity $ListDe;
                         $allSourceFields =Get-PnPField -List $ListDe
-                        $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };}
+                        $ctx = Get-PnPContext;
+                        $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };
+                    }
                 } while($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException")
             }
             elseif ($tenant1 -eq "MultipleConnection"){
                 $sourceList = Get-PnPList -Identity $ListDe;
                 $allSourceFields =Get-PnPField -List $ListDe
+                $ctx = Get-PnPContext;
                 $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };
             }
         }
         #Carregando o contexto da lista
         $sourceList = Get-PnPList -Identity $ListDe;
         $allSourceFields =Get-PnPField -List $ListDe
+        $ctx = Get-PnPContext;
         $sourceFields = $allSourceFields | Where-Object { $_.FromBaseType -eq $false };
-        
         #Se for no mesmo tenant
         if ($null -eq $segundoSite -or $segundoSite -eq "") {
             if ($null -eq $sourceList) { return "Valor inválido"; } 
@@ -273,19 +322,10 @@ function copyAndCreateList {
             if($null -eq $listExists){
                 $novaLista = New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                 try {
-                    foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
-                        if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
-                            if($field.Required -eq $true){
-                                $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
-                            }
-                            else{
-                                $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
-                            }
-                        }
-                    }
+                    addFields -sourceFields $sourceFields -ListPara $ListPara -ctx $ctx -isExternal $false;
                     Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                 }
-                catch [Excption]{
+                catch [Exception] {
                     Remove-PnPList -Identity $ListPara -Force;
                     return $_;
                 }
@@ -320,16 +360,7 @@ function copyAndCreateList {
                         if($null -eq $listExists){
                             $novaLista = New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                         try {
-                            foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
-                                if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
-                                    if($field.Required -eq $true){
-                                        $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
-                                    }
-                                    else{
-                                        $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
-                                    }
-                                }
-                            }   
+                            addFields -sourceFields $sourceFields -ListPara $ListPara -ctx $ctx -isExternal $true;
                             Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                         }
                         catch [Excption]{
@@ -349,17 +380,8 @@ function copyAndCreateList {
                 if($null -eq $listExists){
                     $novaLista = New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                 try {
-                    foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
-                        if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
-                            if($field.Required -eq $true){
-                                $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
-                            }
-                            else{
-                                $novaColuna = Add-PnPField -List $ListPara -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
-                            }
-                        }
-                    }
-                 Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
+                    addFields -sourceFields $sourceFields -ListPara $ListPara -ctx $ctx -isExternal $true;
+                    Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                 }
                 catch [Excption]{
                     Remove-PnPList -Identity $ListPara -Force;
