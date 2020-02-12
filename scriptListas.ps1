@@ -28,7 +28,7 @@ function Copy-SPOAttachments($SourceItem, $TargetItem) {
 }
 
 function checkValueType(){
-    param($value)
+    param($value, [bool]$isExternal, [string]$siteTarget)
     if($value -eq $null) {return $value};
     $valueType = $value.GetType().Name;
     Switch($valueType) {
@@ -45,8 +45,15 @@ function checkValueType(){
             return $lookId =$value.LookupId;
         }
         FieldUserValue{
-           return $email = $value.Email;
-        }
+            #Por enquanto é null
+            if($true -eq $isExternal){
+               return $value = $null; 
+            }
+            else{
+                return $email = $value.Email;
+            }
+           
+        } 
         Double{
             return $value;
         }
@@ -61,7 +68,7 @@ function checkValueType(){
 }
 
 function addItemsToList {
-    param($sourceItems, $ListPara, [bool]$ehAnterior, $outputFilePath, $listEncontrados, $nomeDoArq, [bool]$needsExcel);
+    param($sourceItems, $ListPara, [bool]$ehAnterior, $outputFilePath, $listEncontrados, $nomeDoArq, [bool]$needsExcel, [bool]$isExternal, [string]$targetSite);
     #Adiciona se precisar do excel, tanto faz o tenant , Importa o CSV criado na hora ou já modificado
     if ($true -eq $needsExcel) {
         $newEncontrados = @();
@@ -108,12 +115,14 @@ function addItemsToList {
                 if ($valor -ne $null) {
                     $campoDe = $campo.Split('|')[0];
                     $value = $item[$valor];
-                    $newVal = checkValueType -value $value;
+                    if($true -eq $isExternal){ $newVal = checkValueType -value $value -isExternal $true -siteTarget $targetSite; }
+                    else{ $newVal = checkValueType -value $value;}
                     $jsonBase.Add($campo, $newVal);
                 }
                 else {
                     $value = $item[$campo];
-                    $newVal = checkValueType -value $value;
+                    if($true -eq $isExternal){ $newVal = checkValueType -value $value -isExternal $true -siteTarget $targetSite; }
+                    else{ $newVal = checkValueType -value $value;}
                     $jsonBase.Add($campo, $newVal);
                 }
             }
@@ -144,12 +153,14 @@ function addItemsToList {
                 if ($valor -ne $null) {
                     $campoDe = $campo.Split('|')[0];
                     $value = $item[$valor];
-                    $newVal = checkValueType -value $value;
+                    if($true -eq $isExternal){ $newVal = checkValueType -value $value -isExternal $true -siteTarget $targetSite; }
+                    else{ $newVal = checkValueType -value $value;}
                     $jsonBase.Add($campo, $newVal);
                 }
                 else { 
                     $value = $item[$campo];
-                    $newVal = checkValueType -value $value;
+                    if($true -eq $isExternal){ $newVal = checkValueType -value $value -isExternal $true -siteTarget $targetSite; }
+                    else{ $newVal = checkValueType -value $value;}
                     $jsonBase.Add($campo, $newVal);
                 }
             }
@@ -383,16 +394,16 @@ function loadListsFromMultipleSites {
                     OK { 
                         Stop-Transcript
                         #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
-                        addItemsToList -sourceItems $sourceItems  -needsExcel $true -ListPara $ListPara -newEncontrados $newEncontrados -ehAnterior $ehAnterior -outputFilePath $outputFilePath -listEncontrados $listaEncontrados -nomeDoArq $nomeDoArq;
+                        addItemsToList -sourceItems $sourceItems  -needsExcel $true -ListPara $ListPara -newEncontrados $newEncontrados -ehAnterior $ehAnterior -outputFilePath $outputFilePath -listEncontrados $listaEncontrados -nomeDoArq $nomeDoArq -isExternal $true -targetSite $targetUrl;
                     }
                     Default { 
                         Stop-Transcript
                         #No array de items da source, para cada item, criar um json vazio, e adicionando os campos
-                        addItemsToList -sourceItems $sourceItems -needsExcel $true -ListPara $ListPara -newEncontrados $newEncontrados -ehAnterior $ehAnterior -outputFilePath $outputFilePath -listEncontrados $listaEncontrados -nomeDoArq $nomeDoArq;
+                        addItemsToList -sourceItems $sourceItems -needsExcel $true -ListPara $ListPara -newEncontrados $newEncontrados -ehAnterior $ehAnterior -outputFilePath $outputFilePath -listEncontrados $listaEncontrados -nomeDoArq $nomeDoArq -isExternal $true  -targetSite $targetUrl;
                     }
                 }
             }
-            else { addItemsToList -sourceItems $sourceItems -ListPara $ListPara -needsExcel $false -listEncontrados $listaEncontrados }
+            else { addItemsToList -sourceItems $sourceItems -ListPara $ListPara -needsExcel $false -listEncontrados $listaEncontrados -isExternal $true -targetSite $targetUrl;}
         }
         catch [Exception] {  
             $ErrorMessage = $_.Exception.Message         
