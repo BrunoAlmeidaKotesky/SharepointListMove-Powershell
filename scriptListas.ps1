@@ -485,11 +485,10 @@ function tryToConnect {
     }
 }
 
-Write-host "A segunda lista está em outro ambiente do sharepoint? (Padrão: Sim)" -ForegroundColor Yellow 
-$userChoice = Read-Host " ( S / N ) "
-Switch ($userChoice) { 
-    S {
-        $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
+function tenantOption {
+    param([bool]$isExternal)
+    if($true -eq $isExternal){
+    $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
         #While pra validar se url é vazia
         while (!$Site) {
             $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
@@ -520,9 +519,8 @@ Switch ($userChoice) {
             }
             while ($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") 
         };
-    } 
-
-    N {
+    }
+    else{
         $Site = Read-Host 'Qual a url quer navegar?';
         #While pra validar se url é vazia
         while (!$Site) {
@@ -547,39 +545,13 @@ Switch ($userChoice) {
             }
             while ($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") 
         };
-    } 
+    }
+}
 
-    Default {
-        $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
-        #While pra validar se url é vazia
-        while (!$Site) {
-            $Site = Read-Host 'Qual a url do site de onde a lista será copiada?';
-        }
-        $Site2 = Read-Host 'Qual a url do site para qual a lista será enviada?';
-        #While pra validar se url é vazia
-        while (!$Site2) {
-            $Site2 = Read-Host 'Qual a url do site para qual a lista será enviada?';
-        }
-
-        $result = tryToConnect -siteurl $Site -isExternal $true -siteurl2 $Site2;
-        if ($result -eq "UriFormatException" -or $result -eq "WebException" -or $result -eq "IdcrlException") {
-            Write-Host "As credenciais ou URL do primeiro site estão inválidas, tente novamente!" -ForegroundColor Red
-            do {
-                $retry = Read-Host 'Qual a url do site de onde a lista será copiada?'; 
-                $retry2 = Read-Host 'Qual a url do site para qual a lista será enviada?';
-
-                $res = tryToConnect -siteurl $retry -isExternal $true -siteurl2 $retry2;
-                if ($res -eq "UriFormatException") {
-                    Write-Host "Url não válida!" -ForegroundColor Red      
-                }
-                if ($res -eq "WebException") {
-                    Write-Host "As credenciais ou URL do primeiro site estão inválidas, tente novamente!" -ForegroundColor Red      
-                }
-                if ($res -eq "IdcrlException") {
-                    Write-Host "As credenciais estão inválidas, tente novamente!" -ForegroundColor Red 
-                }
-            }
-            while ($res -eq "UriFormatException" -or $res -eq "WebException" -or $res -eq "IdcrlException") 
-        };
-    } 
+Write-host "A segunda lista está em outro ambiente do sharepoint? (Padrão: Sim)" -ForegroundColor Yellow 
+$userChoice = Read-Host " ( S / N ) "
+Switch ($userChoice) { 
+    S { tenantOption -isExternal $true; } 
+    N { tenantOption -isExternal $false; } 
+    Default { tenantOption -isExternal $true; } 
 }

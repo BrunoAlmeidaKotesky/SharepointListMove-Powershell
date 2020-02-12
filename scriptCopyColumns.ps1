@@ -213,11 +213,50 @@ function userOptions {
         }
     }
 }
-
-
 function addFields() {
     param($sourceFields, [string]$ListPara, $ctx, [bool]$isExternal);
-    foreach ($field in $sourceFields | Where-Object { $_.FromBaseType -eq $false }) {
+     $userFields = $sourceFields | Where-Object { $_.FromBaseType -eq $false };
+     $newUserFields = @();
+     $lookObject = @{};
+
+    if($true -eq $isExternal){
+      $colunasComLookup = $userFields | Where-Object {$_.FieldTypeKind -eq "Lookup"}
+      if($colunasComLookup.Lenght -gt 0){
+        $info = Write-Host "Na lista origem ha colunas do tipo lookup, deseja ignorar esses campos ou especificar qual lista e campo sera enviada para o site alvo?" -ForegroundColor Yellow;
+        $options = [System.Management.Automation.Host.ChoiceDescription[]] @("&Especificar", "&Ignorar")
+        [int]$defaultchoice = 0
+        $option = $host.UI.PromptForChoice($info, $options, $defaultchoice)
+        switch($option)
+        {
+            0 {
+                $newUserFields = $userFields | Where-Object { $_.FieldTypeKind -ne "Lookup" };
+                foreach($newField in $colunasComLookup){
+                    if($newField.FieldTypeKind -eq "Lookup"){
+                        $listName = Read-Host "Qual é lista para o $($newField.InternalName)";
+                        $colName = Read-Host "Qual é lista para o $($newField.InternalName)";
+                        $ls = Get-PnPList -Identity $listName;
+                        $lookObject.Add('listId', $ls.Id);
+                        $lookObject.Add('colName', $colName);
+                        $lookObject.Add('title', $newField.Title);
+                        $lookObject.Add('internalName', $newField.InternalName);
+                    }
+                }
+                $lookObject | ForEach-Object {
+                    $newCol = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $_.title-Type Lookup -InternalName $_.internalName; 
+                    $lkField = $newCol.TypedObject;
+                    $lkField.LookupList = $_.listId;  #use the actual ID of the list, not the name
+                    $lkField.LookupField = $_.colName;
+                    $lkField.update();
+                    $ctx.ExecuteQuery();
+                } 
+            }
+            1 {  $newUserFields = $userFields | Where-Object { $_.FieldTypeKind -ne "Lookup" }; }
+        }
+      }
+    }
+    else{ $newUserFields = $userFields;}
+
+    foreach ($field in $newUserFields) {
         if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
             if($field.Required -eq $true){
                 if($field.FieldTypeKind -eq "Lookup"){
@@ -225,13 +264,8 @@ function addFields() {
                     $lkField = $novaColuna.TypedObject;
                     $lookId1 = $field.LookupList.Replace("{", "");
                     $lookId2 = $lookId1.Replace("}", "");
-                    if($true -eq $isExternal){
-                        
-                    }
-                    else {
-                        $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
-                        $lkField.LookupField = $field.LookupField;
-                    }
+                    $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
+                    $lkField.LookupField = $field.LookupField;
                     $lkField.update();
                     $ctx.ExecuteQuery();
                 }
@@ -245,15 +279,8 @@ function addFields() {
                     $lkField = $novaColuna.TypedObject;
                     $lookId1 = $field.LookupList.Replace("{", "");
                     $lookId2 = $lookId1.Replace("}", "");
-                    if($true -eq $isExternal){
-                        $ls = Get-PnPList -Identity $ListPara;
-                        $lkField.LookupList = $ls.Id  #use the actual ID of the list, not the name
-                        $lkField.LookupField = $field.LookupField;
-                    }
-                    else {
-                        $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
-                        $lkField.LookupField = $field.LookupField;
-                    }
+                    $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
+                    $lkField.LookupField = $field.LookupField;
                     $lkField.update();
                     $ctx.ExecuteQuery();
                 }
