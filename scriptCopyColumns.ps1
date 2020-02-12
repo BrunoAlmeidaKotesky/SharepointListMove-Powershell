@@ -258,7 +258,7 @@ function addFields() {
     param($sourceFields, [string]$ListPara, $ctx, [bool]$isExternal);
     $newUserFields = @();
     $colunasComLookup = @();
-    $lookObject = @{};
+    $lookObject = New-Object System.Object;
 
     if($true -eq $isExternal){
       $colunasComLookup += $sourceFields | ? {$_.FieldTypeKind -eq "Lookup"};
@@ -273,13 +273,13 @@ function addFields() {
                  $newUserFields += $sourceFields | Where-Object { $_.FieldTypeKind -ne "Lookup" };
                  foreach($newField in $colunasComLookup){
                      if($newField.FieldTypeKind -eq "Lookup"){
-                         $listName = Read-Host "Qual é lista para o $($newField.InternalName)";
-                         $colName = Read-Host "Qual é lista para o $($newField.InternalName)";
+                         $listName = Read-Host "Qual e lista para o $($newField.InternalName)";
+                         $colName = Read-Host "Qual e coluna para o $($newField.InternalName)";
                          $ls = Get-PnPList -Identity $listName;
-                         $lookObject.Add('listId', $ls.Id);
-                         $lookObject.Add('colName', $colName);
-                         $lookObject.Add('title', $newField.Title);
-                         $lookObject.Add('internalName', $newField.InternalName);
+                         $lookObject | Add-Member -type NoteProperty -name listId -Value $ls.Id;
+                         $lookObject | Add-Member -type NoteProperty -name colName -Value $colName;
+                         $lookObject | Add-Member -type NoteProperty -name title -Value $newField.Title;
+                         $lookObject | Add-Member -type NoteProperty -name internalName -Value $newField.InternalName;
                      }
                  }
                  $lookObject | ForEach-Object {
@@ -403,7 +403,7 @@ function copyAndCreateList {
                             addFields -sourceFields $sourceFields -ListPara $ListPara -ctx $ctx -isExternal $true;
                             Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                         }
-                        catch [Excption]{
+                        catch [Exception]{
                             Remove-PnPList -Identity $ListPara -Force;
                             return $_;
                         }
@@ -423,7 +423,7 @@ function copyAndCreateList {
                     addFields -sourceFields $sourceFields -ListPara $ListPara -ctx $ctx -isExternal $true;
                     Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                 }
-                catch [Excption]{
+                catch [Exception]{
                     Remove-PnPList -Identity $ListPara -Force;
                     return $_;
                 }
