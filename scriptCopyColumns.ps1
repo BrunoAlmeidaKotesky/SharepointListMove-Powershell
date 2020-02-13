@@ -21,6 +21,13 @@ function retryConnection {
     }
 }
 
+class LookUpCol {
+    [string]$listId
+    [string]$colName
+    [string]$title
+    [string]$internalName
+}
+
 function userOptions {
     param([bool]$option = $true)
     $Site = Read-Host 'Qual a url do site de onde a lista sera copiada?';
@@ -271,22 +278,25 @@ function addFields() {
             {
              E {
                  $newUserFields += $sourceFields | Where-Object { $_.FieldTypeKind -ne "Lookup" };
+                 $lookObject = @();
                  foreach($newField in $colunasComLookup){
                      if($newField.FieldTypeKind -eq "Lookup"){
                          $listName = Read-Host "Qual e lista para o $($newField.InternalName)";
                          $colName = Read-Host "Qual e coluna para o $($newField.InternalName)";
                          $ls = Get-PnPList -Identity $listName;
-                         $lookObject | Add-Member -type NoteProperty -name listId -Value $ls.Id;
-                         $lookObject | Add-Member -type NoteProperty -name colName -Value $colName;
-                         $lookObject | Add-Member -type NoteProperty -name title -Value $newField.Title;
-                         $lookObject | Add-Member -type NoteProperty -name internalName -Value $newField.InternalName;
+                         $lookObject += @([LookUpCol]@{
+                                          listId= $ls.Id;
+                                          colName=$colName;
+                                          title=$newField.Title;
+                                          internalName= $newField.InternalName;
+                                        })
                      }
                  }
-                 $lookObject | ForEach-Object {
-                     $newCol = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $_.title-Type Lookup -InternalName $_.internalName; 
+                 foreach($item in $lookObject) {
+                     $newCol = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $item.title-Type Lookup -InternalName $item.internalName; 
                      $lkField = $newCol.TypedObject;
-                     $lkField.LookupList = $_.listId;  #use the actual ID of the list, not the name
-                     $lkField.LookupField = $_.colName;
+                     $lkField.LookupList = $item.listId;  #use the actual ID of the list, not the name
+                     $lkField.LookupField = $item.colName;
                      $lkField.update();
                      $ctx.ExecuteQuery();
                  } 
