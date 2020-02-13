@@ -26,6 +26,7 @@ class LookUpCol {
     [string]$colName
     [string]$title
     [string]$internalName
+    [bool]$isMulti
 }
 
 function userOptions {
@@ -227,38 +228,41 @@ function insertAllColumns (){
     foreach ($field in $allCols) {
         if($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created"){
             if($field.Required -eq $true){
-                if($field.FieldTypeKind -eq "Lookup"){
-                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Lookup  -InternalName $field.InternalName;
-                    $lkField = $novaColuna.TypedObject;
-                    $lookId1 = $field.LookupList.Replace("{", "");
-                    $lookId2 = $lookId1.Replace("}", "");
-                    $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
-                    $lkField.LookupField = $field.LookupField;
-                    $lkField.update();
-                    $ctx.ExecuteQuery();
-                }
+                
                 if ($field.FieldTypeKind -eq "Choice") {
                     $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName;
                 }
-                elseif($field.FieldTypeKind -ne "Choice" -and $field.FieldTypeKind -ne "Lookup") {
+                elseif($field.FieldTypeKind -eq "MultiChoice"){
+                    $choices = @();
+                    foreach($choice in $field.Choices){$choices += "<CHOICE>$($choice)</CHOICE>"};
+                    
+                    $chkBoxField = "<Field Type='MultiChoice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Required='TRUE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
+                                      <CHOICES>$($choices)</CHOICES></Field>";
+                    $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $chkBoxField;
+                }
+                elseif($field.FieldTypeKind -ne "Choice" -or $field.FieldTypeKind -ne "Lookup" -or $field.FieldTypeKind -ne "MultiChoice") {
                     $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
                 }
             }
             else{
-                if($field.FieldTypeKind -eq "Lookup"){
-                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Lookup -InternalName $field.InternalName;
-                    $lkField = $novaColuna.TypedObject;
-                    $lookId1 = $field.LookupList.Replace("{", "");
-                    $lookId2 = $lookId1.Replace("}", "");
-                    $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
-                    $lkField.LookupField = $field.LookupField;
-                    $lkField.update();
-                    $ctx.ExecuteQuery();
-                }
+                
                 if ($field.FieldTypeKind -eq "Choice") {
-                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName;
+                        $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName;
                 }
-                elseif($field.FieldTypeKind -ne "Choice" -and $field.FieldTypeKind -ne "Lookup"){
+                elseif($field.FieldTypeKind -eq "MultiChoice"){
+                    $choices = @();
+                    foreach($choice in $field.Choices){
+                        $choice = $choice.Replace("/","");
+                        $choice = $choice.Replace("&","");
+                        $choice = $choice.Replace("(","");
+                        $choice = $choice.Replace(")","");
+                        $choices += "<CHOICE>$($choice)</CHOICE>"
+                };
+                    
+                    $chkBoxField = "<Field Type='MultiChoice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Required='FALSE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'><CHOICES>$($choices)</CHOICES></Field>";
+                    $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $chkBoxField;
+                }
+                elseif($field.FieldTypeKind -ne "Choice" -or $field.FieldTypeKind -ne "Lookup"  -or $field.FieldTypeKind -ne "MultiChoice"){
                     $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
                 }
                 
@@ -272,9 +276,10 @@ function addFields() {
     $newUserFields = @();
     $colunasComLookup = @();
     $lookObject = New-Object System.Object;
+    #Colunas que possuem lookup
+    $colunasComLookup += $sourceFields | ? {$_.FieldTypeKind -eq "Lookup" -or $_.FieldTypeKind -eq "MultiLookup"};
 
     if($true -eq $isExternal){
-      $colunasComLookup += $sourceFields | ? {$_.FieldTypeKind -eq "Lookup"};
       if($colunasComLookup.Count -gt 0) {
          Write-Host "Na lista origem ha colunas do tipo lookup, deseja ignorar esses campos ou especificar qual lista e campo sera enviada para o site alvo?" -ForegroundColor Yellow;
          
@@ -286,7 +291,7 @@ function addFields() {
                  $newUserFields += $sourceFields | Where-Object { $_.FieldTypeKind -ne "Lookup" };
                  $lookObject = @();
                  foreach($newField in $colunasComLookup){
-                     if($newField.FieldTypeKind -eq "Lookup"){
+                     if($newField.TypeAsString  -eq "Lookup"){
                          $listName = Read-Host "Qual e lista para o $($newField.InternalName)";
                          $colName = Read-Host "Qual e coluna para o $($newField.InternalName)";
                          $ls = Get-PnPList -Identity $listName;
@@ -295,16 +300,35 @@ function addFields() {
                                           colName=$colName;
                                           title=$newField.Title;
                                           internalName= $newField.InternalName;
+                                          isMulti=$false;
+                                        })
+                     }
+                     elseif($newField.TypeAsString -eq "LookupMulti") {
+                        $listName = Read-Host "Qual e lista para o $($newField.InternalName)";
+                         $colName = Read-Host "Qual e coluna para o $($newField.InternalName)";
+                         $ls = Get-PnPList -Identity $listName;
+                         $lookObject += @([LookUpCol]@{
+                                          listId= $ls.Id;
+                                          colName=$colName;
+                                          title=$newField.Title;
+                                          internalName= $newField.InternalName;
+                                          isMulti=$true;
                                         })
                      }
                  }
                  foreach($item in $lookObject) {
-                     $newCol = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $item.title-Type Lookup -InternalName $item.internalName; 
-                     $lkField = $newCol.TypedObject;
-                     $lkField.LookupList = $item.listId;  #use the actual ID of the list, not the name
-                     $lkField.LookupField = $item.colName;
-                     $lkField.update();
-                     $ctx.ExecuteQuery();
+                     if($item.isMulti -eq $false){
+                        $newCol = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $item.title-Type Lookup -InternalName $item.internalName; 
+                        $lkField = $newCol.TypedObject;
+                        $lkField.LookupList = $item.listId;  #use the actual ID of the list, not the name
+                        $lkField.LookupField = $item.colName;
+                        $lkField.update();
+                        $ctx.ExecuteQuery();
+                     }
+                     else{
+                        $multiLookUp="<Field Type='LookupMulti' List='$($item.listId)' DisplayName='$($item.title)' Required='FALSE' Mult='TRUE' EnforceUniqueValues='FALSE' ShowField='$($item.colName)' UnlimitedLengthInDocumentLibrary='FALSE' RelationshipDeleteBehavior='None' ShowInViewForms='TRUE' StaticName='$($item.internalName)' Name='$($item.internalName)'/>";
+                        $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $multiLookUp;
+                     }
                  } 
                  insertAllColumns -allCols $newUserFields -ListPara $ListPara;
              }
@@ -314,11 +338,39 @@ function addFields() {
              }
         }
       }
+      #Se mais de um tenant E nao existir lookup insere normalmente
       else { insertAllColumns -allCols $sourceFields -ListPara $ListPara;}
     }
+    #Se for somente um tenanat
     else{
-         $newUserFields = $sourceFields;
-         insertAllColumns -allCols $newUserFields -ListPara $ListPara;
+        #se em um tenanat tiver lookup
+        if($colunasComLookup.Count -gt 0) {
+            $newUserFields += $sourceFields | Where-Object { $_.FieldTypeKind -ne "Lookup" }; #Items que não sejam lookup nem multi lookup
+            $lookObject = @();
+            foreach($item in $colunasComLookup) {
+                if($item.TypeAsString  -eq "Lookup"){
+                   $newCol = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $item.title-Type Lookup -InternalName $item.internalName; 
+                   $lkField = $newCol.TypedObject;
+                   $lookId1 = $item.LookupList.Replace("{", "");
+                   $lookId2 = $lookId1.Replace("}", "");
+                   $lkField.LookupList = $lookId2;  #use the actual ID of the list, not the name
+                   $lkField.LookupField = $item.LookupField;
+                   $lkField.update();
+                   $ctx.ExecuteQuery();
+                }
+                elseif($item.TypeAsString  -eq "LookupMulti"){
+                   $lookId1 = $item.LookupList.Replace("{", "");
+                   $lookId2 = $lookId1.Replace("}", "");
+                   $multiLookUp="<Field Type='LookupMulti' List='$($lookId2)' DisplayName='$($item.Title)' Required='FALSE' Mult='TRUE' EnforceUniqueValues='FALSE' ShowField='$($item.LookupField)' UnlimitedLengthInDocumentLibrary='FALSE' RelationshipDeleteBehavior='None' ShowInViewForms='TRUE' StaticName='$($item.InternalName)' Name='$($item.InternalName)'/>";
+                   $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $multiLookUp;
+                }
+            } 
+            insertAllColumns -allCols $newUserFields -ListPara $ListPara;
+        }
+        #Se em um tenant nao tiver lookup
+        else {
+            insertAllColumns -allCols $sourceFields -ListPara $ListPara;
+        }
     }
 };
 

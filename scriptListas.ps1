@@ -63,6 +63,16 @@ function checkValueType(){
         Date{
             return $value;
         }
+        "FieldLookupValue[]" {
+            [System.Collections.ArrayList]$idCollection=@();
+            foreach($id in $value){
+                $idCollection.Add($id.LookupId);
+            }
+            return $idCollection;
+        }
+        "String[]" {
+            return $value;
+        }
         Default { return $value;}
     }
 }
@@ -143,12 +153,13 @@ function addItemsToList {
     }
     else{
         #Adiciona se nao precisar do excel, tanto faz o tenant
+        
         foreach ($item in $sourceItems) {
+       
             $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
             #Para cada campo na lista de campos encontrados, adicione em um json
             $identifyTitle = Get-PnPListItem -List $ListPara -Query "<View><Query><Where><Eq><FieldRef Name='Title'/><Value Type='Text'>$($item["Title"])</Value></Eq></Where></Query></View>";
-            foreach ($campo in $listEncontrados) {
-                        
+            foreach ($campo in $listEncontrados) {   
                 $valor = $campo.Split('|')[1];
                 if ($valor -ne $null) {
                     $campoDe = $campo.Split('|')[0];
