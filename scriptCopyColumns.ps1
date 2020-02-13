@@ -237,7 +237,10 @@ function insertAllColumns (){
                     $lkField.update();
                     $ctx.ExecuteQuery();
                 }
-                else {
+                if ($field.FieldTypeKind -eq "Choice") {
+                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName;
+                }
+                elseif($field.FieldTypeKind -ne "Choice" -and $field.FieldTypeKind -ne "Lookup") {
                     $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;
                 }
             }
@@ -252,7 +255,10 @@ function insertAllColumns (){
                     $lkField.update();
                     $ctx.ExecuteQuery();
                 }
-                else{
+                if ($field.FieldTypeKind -eq "Choice") {
+                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName;
+                }
+                elseif($field.FieldTypeKind -ne "Choice" -and $field.FieldTypeKind -ne "Lookup"){
                     $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;
                 }
                 
