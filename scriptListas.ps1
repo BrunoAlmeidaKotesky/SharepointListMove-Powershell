@@ -33,7 +33,13 @@ function checkValueType(){
     $valueType = $value.GetType().Name;
     Switch($valueType) {
         FieldUrlValue {
-            return $imageUrl = $value.Url;
+            if($null -eq $value.Description){
+                return $imageUrl = $value.Url;
+            }
+            else{ 
+                $allStr = $value.Url + " , " + $value.Description;
+                return $allStr;
+            }
         }
         String {
             return $value;
@@ -108,6 +114,7 @@ function addItemsToList {
             } 
         }
         #itera sobre os items da source e adiciona na lista alvo
+        Write-Progress -Id 1 -Activity "Enviando items para a lista..." -Status "Isso pode demorar alguns minutos!";
         foreach ($item in $sourceItems) {
             $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
             #Para cada campo na lista de campos encontrados, adicione em um json
@@ -153,7 +160,7 @@ function addItemsToList {
     }
     else{
         #Adiciona se nao precisar do excel, tanto faz o tenant
-        
+        Write-Progress -Id 2 -Activity "Enviando items para a lista..." -Status "Isso pode demorar alguns minutos!";
         foreach ($item in $sourceItems) {
        
             $jsonBase = @{"Title" = $item["Title"]; "Modified" = $item["Modified"]; "Created" = $item["Created"]; }
@@ -261,6 +268,7 @@ function loadLists {
             foreach ($coluna in $targetFieldsEncontrados) {
                 Write-Host "Coluna presente na lista $($ListPara):", $coluna.InternalName -ForegroundColor Yellow
             }
+            Write-Progress -Id 3 -Activity "Verificando colunas presentes na lista..." -Status "Isso pode demorar alguns minutos!";
             #Se no mesmo tenant, tiver colunas nao encontradas execute a funcao de adicionar os sourceitems
             if ($listaNaoEncontrados.Length -gt 0) {
                 Write-host "Há colunas nas quais não foram encontrados na lista alvo, informe agora no csv para onde eles devem ir antes de continuar." -ForegroundColor Yellow 
@@ -398,6 +406,7 @@ function loadListsFromMultipleSites {
             foreach ($coluna in $targetFieldsEncontrados) {
                 Write-Host "Coluna presente na lista $($ListPara):", $coluna.InternalName -ForegroundColor Yellow
             }
+            Write-Progress -Id 4 -Activity "Verificando colunas presentes na lista..." -Status "Isso pode demorar alguns minutos!";
             if ($listaNaoEncontrados.Length -gt 0) {
                 Write-host "Há colunas nas quais não foram encontrados na lista alvo, informe agora no csv para onde eles devem ir antes de continuar." -ForegroundColor Yellow 
                 $lerCsv = Read-Host " ( OK ) "
@@ -556,17 +565,17 @@ function tenantOption {
         };
     }
     else {
-        $Site = Read-Host 'Qual a url quer navegar?';
+        $Site = Read-Host 'Qual a url que sera enviada?';
         #While pra validar se url é vazia
         while (!$Site) {
-            $Site = Read-Host 'Qual a url quer navegar?';  
+            $Site = Read-Host 'Qual a url que sera enviada?';  
         }
 
         $result = tryToConnect -siteurl $Site;
         if ($result -eq "UriFormatException" -or $result -eq "WebException" -or $result -eq "IdcrlException") {
     
             do {
-                $retry = Read-Host 'Qual a url quer navegar?'; 
+                $retry = Read-Host 'Qual a url que sera enviada?'; 
                 $res = tryToConnect -siteurl $retry
                 if ($res -eq "UriFormatException") {
                     Write-Host "Url não válida!" -ForegroundColor Red      

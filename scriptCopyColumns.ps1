@@ -230,11 +230,31 @@ function insertAllColumns (){
             if($field.Required -eq $true){
                 
                 if ($field.FieldTypeKind -eq "Choice") {
-                    $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName;
+                    if($field.TypedObject.EditFormat -eq "RadioButtons") {
+                        $choices = @();
+                    foreach($choice in $field.Choices){
+                        $choice = $choice.Replace("/","");
+                        $choice = $choice.Replace("&","");
+                        $choice = $choice.Replace("(","");
+                        $choice = $choice.Replace(")","");
+                        $choices += "<CHOICE>$($choice)</CHOICE>"
+                };
+                    
+                    $radioBtnField = "<Field Type='Choice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Format='RadioButtons' Required='TRUE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
+                                      <CHOICES>$($choices)</CHOICES></Field>";
+                    $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $radioBtnField;
+                    }
+                    else{ $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName;}
                 }
                 elseif($field.FieldTypeKind -eq "MultiChoice"){
                     $choices = @();
-                    foreach($choice in $field.Choices){$choices += "<CHOICE>$($choice)</CHOICE>"};
+                    foreach($choice in $field.Choices){
+                        $choice = $choice.Replace("/","");
+                        $choice = $choice.Replace("&","");
+                        $choice = $choice.Replace("(","");
+                        $choice = $choice.Replace(")","");
+                        $choices += "<CHOICE>$($choice)</CHOICE>"
+                };
                     
                     $chkBoxField = "<Field Type='MultiChoice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Required='TRUE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
                                       <CHOICES>$($choices)</CHOICES></Field>";
@@ -247,7 +267,21 @@ function insertAllColumns (){
             else{
                 
                 if ($field.FieldTypeKind -eq "Choice") {
-                        $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName;
+                    if($field.TypedObject.EditFormat -eq "RadioButtons") {
+                        $choices = @();
+                    foreach($choice in $field.Choices){
+                        $choice = $choice.Replace("/","");
+                        $choice = $choice.Replace("&","");
+                        $choice = $choice.Replace("(","");
+                        $choice = $choice.Replace(")","");
+                        $choices += "<CHOICE>$($choice)</CHOICE>"
+                };
+                    
+                    $radioBtnField = "<Field Type='Choice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Format='RadioButtons' Required='FALSE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
+                                      <CHOICES>$($choices)</CHOICES></Field>";
+                    $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $radioBtnField;
+                    }
+                    else{ $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Choice -Choices $field.Choices -InternalName $field.InternalName;}            
                 }
                 elseif($field.FieldTypeKind -eq "MultiChoice"){
                     $choices = @();
@@ -430,6 +464,7 @@ function copyAndCreateList {
             if($null -eq $listExists){
                 $novaLista = New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                 try {
+                    Write-Progress -Id 1 -Activity "Criando as colunas na lista" -Status "Isso pode demorar alguns minutos!";
                     addFields -sourceFields $sourceFields -ListPara $ListPara -ctx $ctx -isExternal $false;
                     Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                 }
@@ -468,6 +503,7 @@ function copyAndCreateList {
                         if($null -eq $listExists){
                             $novaLista = New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                         try {
+                            Write-Progress -Id 2 -Activity "Criando as colunas na lista" -Status "Isso pode demorar alguns minutos!";
                             addFields -sourceFields $sourceFields -ListPara $ListPara -ctx $ctx -isExternal $true;
                             Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                         }
@@ -488,6 +524,7 @@ function copyAndCreateList {
                 if($null -eq $listExists){
                     $novaLista = New-PnPList -Title $ListPara.Replace("Lists/", "") -Template GenericList;
                 try {
+                    Write-Progress -Id 3 -Activity "Criando as colunas na lista" -Status "Isso pode demorar alguns minutos!";
                     addFields -sourceFields $sourceFields -ListPara $ListPara -ctx $ctx -isExternal $true;
                     Write-Host "Lista criada com sucesso!" -ForegroundColor Green;  
                 }
