@@ -72,7 +72,7 @@ function checkValueType(){
         "FieldLookupValue[]" {
             [System.Collections.ArrayList]$idCollection=@();
             foreach($id in $value){
-                $idCollection.Add($id.LookupId);
+                $idCollection+= $id.LookupId;
             }
             return $idCollection;
         }
@@ -176,6 +176,7 @@ function addItemsToList {
                     $jsonBase.Add($campo, $newVal);
                 }
                 else { 
+
                     $value = $item[$campo];
                     if($true -eq $isExternal){ $newVal = checkValueType -value $value -isExternal $true -siteTarget $targetSite; }
                     else{ $newVal = checkValueType -value $value;}

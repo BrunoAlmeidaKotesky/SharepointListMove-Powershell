@@ -222,91 +222,86 @@ function userOptions {
     }
 }
 
+function assertIsRequired(){
+    param([bool]$requiredField);
+    $reqObj = New-Object -TypeName psobject;
+    if($true -eq $requiredField){
+        $reqObj | Add-Member -MemberType NoteProperty -Name XMLReq -Value "Required='TRUE'";
+        $reqObj | Add-Member -MemberType NoteProperty -Name boolReq -Value $true;
+        return $reqObj;
+    }
+    else{
+        $reqObj | Add-Member -MemberType NoteProperty -Name XMLReq -Value "Required='FALSE'";
+        $reqObj | Add-Member -MemberType NoteProperty -Name boolReq -Value $false;
+        return $reqObj;
+    }
+}
+
 function insertAllColumns () {
     param($allCols, $ListPara);
     foreach ($field in $allCols) {
         Write-Progress -Id 1  -Activity Updating -Status "Criando colunas: Isso pode demorar alguns minutos!" -PercentComplete (($count / $allCols.Count) * 100);
         if ($field.InternalName -ne "Title" -or $field.InternalName -ne "Modified" -or $field.InternalName -ne "Created") {
-            Switch($field.Required){
-                $true{
-                    Switch($field.FieldTypeKind){
-                        Choice{
-                            if ($field.TypedObject.EditFormat -eq "RadioButtons") {
-                                $choices = @();
-                                foreach ($choice in $field.Choices) {
-                                    $choice = $choice.Replace("/", "");
-                                    $choice = $choice.Replace("&", "");
-                                    $choice = $choice.Replace("(", "");
-                                    $choice = $choice.Replace(")", "");
-                                    $choices += "<CHOICE>$($choice)</CHOICE>"
-                                };
-                            
-                                $radioBtnField = "<Field Type='Choice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Format='RadioButtons' Required='TRUE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
-                                              <CHOICES>$($choices)</CHOICES></Field>";
-                                $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $radioBtnField;
-                            }
-                            else { $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type Choice -Choices $field.Choices -InternalName $field.InternalName; }
-                        }
-                        MultiChoice{
-                            $choices = @();
-                            foreach ($choice in $field.Choices) {
-                                $choice = $choice.Replace("/", "");
-                                $choice = $choice.Replace("&", "");
-                                $choice = $choice.Replace("(", "");
-                                $choice = $choice.Replace(")", "");
-                                $choices += "<CHOICE>$($choice)</CHOICE>"
-                            };
-                            
-                            $chkBoxField = "<Field Type='MultiChoice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Required='TRUE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
-                                              <CHOICES>$($choices)</CHOICES></Field>";
-                            $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $chkBoxField;
-                        }
-                        DateTime{
+          $req = assertIsRequired -requiredField $field.Required;
 
-                        }
-                        Default{ $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName;}
-                    }
+          Switch($field.FieldTypeKind){
+              Choice{
+                  if ($field.TypedObject.EditFormat -eq "RadioButtons") {
+                      $choices = @();
+                      foreach ($choice in $field.Choices) {
+                          $choice = $choice.Replace("/", "");
+                          $choice = $choice.Replace("&", "");
+                          $choice = $choice.Replace("(", "");
+                          $choice = $choice.Replace(")", "");
+                          $choices += "<CHOICE>$($choice)</CHOICE>"
+                      };
+                  
+                      $radioBtnField = "<Field Type='Choice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Format='RadioButtons' $($req.XMLReq) StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
+                                    <CHOICES>$($choices)</CHOICES></Field>";
+                      $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $radioBtnField;
+                  }
+                  else { if($false -eq $rq.boolReq){$novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Choice -Choices $field.Choices -InternalName $field.InternalName;} 
+                        else{$novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Choice -Choices $field.Choices -Required -InternalName $field.InternalName;}
                 }
-                $false{
-                    Switch ($field.FieldTypeKind) {
-                        Choice {
-                            if ($field.TypedObject.EditFormat -eq "RadioButtons") {
-                                $choices = @();
-                                foreach ($choice in $field.Choices) {
-                                    $choice = $choice.Replace("/", "");
-                                    $choice = $choice.Replace("&", "");
-                                    $choice = $choice.Replace("(", "");
-                                    $choice = $choice.Replace(")", "");
-                                    $choices += "<CHOICE>$($choice)</CHOICE>"
-                                };
-                            
-                                $radioBtnField = "<Field Type='Choice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Format='RadioButtons' Required='FALSE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
-                                              <CHOICES>$($choices)</CHOICES></Field>";
-                                $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $radioBtnField;
-                            }
-                            else { $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Choice -Choices $field.Choices -InternalName $field.InternalName; }
-                        }
-    
-                        MultiChoice {
-                            $choices = @();
-                            foreach ($choice in $field.Choices) {
-                                $choice = $choice.Replace("/", "");
-                                $choice = $choice.Replace("&", "");
-                                $choice = $choice.Replace("(", "");
-                                $choice = $choice.Replace(")", "");
-                                $choices += "<CHOICE>$($choice)</CHOICE>"
-                            };
-                            
-                            $chkBoxField = "<Field Type='MultiChoice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Required='FALSE' StaticName='$($field.InternalName)' Name='$($field.InternalName)'><CHOICES>$($choices)</CHOICES></Field>";
-                            $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $chkBoxField;
-                        }
-                        DateTime {
-                            
-                        }
-                        Default { $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName; }
-                    }
+              }
+              MultiChoice{
+                  $choices = @();
+                  foreach ($choice in $field.Choices) {
+                      $choice = $choice.Replace("/", "");
+                      $choice = $choice.Replace("&", "");
+                      $choice = $choice.Replace("(", "");
+                      $choice = $choice.Replace(")", "");
+                      $choices += "<CHOICE>$($choice)</CHOICE>"
+                  };
+                  
+                  $chkBoxField = "<Field Type='MultiChoice' ShowInViewForms='TRUE' DisplayName='$($field.Title)' $($req.XMLReq) StaticName='$($field.InternalName)' Name='$($field.InternalName)'>
+                                    <CHOICES>$($choices)</CHOICES></Field>";
+                  $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $chkBoxField;
+              }
+              DateTime{
+                  if ($field.TypedObject.DisplayFormat -eq "DateTime"){
+                      $dateXML = "<Field Type='DateTime' Name='$($field.InternalName)' ShowInViewForms='TRUE' DisplayName='$($field.Title)'  $($req.XMLReq) StaticName='$($field.InternalName)' />"
+                      $newXmlCol = Add-PnPFieldFromXml -List $ListPara -FieldXml $dateXML;
+                  }
+                  elseif ($field.TypedObject.DisplayFormat -eq "DateOnly") {
+                      $dateXML = "<Field Type='DateTime' Name='$($field.InternalName)' ShowInViewForms='TRUE' DisplayName='$($field.Title)' Format='DateOnly'  $($req.XMLReq) StaticName='$($field.InternalName)' />"
+                      $newXmlCol = Add-PnPFieldFromXml -List $ListPara -FieldXml $dateXML;
+                  }
+              }
+              Note{
+                if($field.RichText -eq $true){
+                    $multiLineXML = "<Field Type='Note' Name='$($field.InternalName)' ShowInViewForms='TRUE' RichTextMode='FullHtml' DisplayName='$($field.Title)' StaticName='$($field.InternalName)' $($req.XMLReq) RichText='TRUE'/>"
+                    $addField = Add-PnPFieldFromXml -List $ListPara -FieldXml $multiLineXML;
                 }
-            }
+                else{
+                    $multiLineXML = "<Field Type='Note' Name='$($field.InternalName)' ShowInViewForms='TRUE' DisplayName='$($field.Title)' StaticName='$($field.InternalName)' $($req.XMLReq) RichText='FALSE'/>"
+                    $addField = Add-PnPFieldFromXml -List $ListPara -FieldXml $multiLineXML;
+                }
+              }
+              Default{ if($false -eq $req.boolReq){ Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type $field.TypeAsString  -InternalName $field.InternalName;}
+                    else{  Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Required -Type $field.TypeAsString  -InternalName $field.InternalName; }
+                }
+          }
         }
     }
 }
