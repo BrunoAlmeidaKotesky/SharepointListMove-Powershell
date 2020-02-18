@@ -260,7 +260,8 @@ function insertAllColumns () {
                                     <CHOICES>$($choices)</CHOICES></Field>";
                       $novaColunaXMLChoices = Add-PnPFieldFromXml -List $ListPara -FieldXml $radioBtnField;
                   }
-                  else { if($false -eq $rq.boolReq){$novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Choice -Choices $field.Choices -InternalName $field.InternalName;} 
+                  else { if($false -eq $req.boolReq){
+                        $novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Choice -Choices $field.Choices -InternalName $field.InternalName;} 
                         else{$novaColuna = Add-PnPField -List $ListPara -AddToDefaultView -DisplayName $field.Title -Type Choice -Choices $field.Choices -Required -InternalName $field.InternalName;}
                 }
               }
